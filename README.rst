@@ -248,7 +248,7 @@ environment_manager
 
 
 ``default_overrides``
---------------------
+---------------------
 
 Override defaults for command flags via the ``default_overrides`` keyword
 argument:
