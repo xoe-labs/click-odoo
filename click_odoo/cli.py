@@ -136,6 +136,8 @@ class CommandWithOdooEnv(click.Command):
                 with odoo.api.Environment.manage():
                     ctx.params["env"] = None
                     return super(CommandWithOdooEnv, self).invoke(ctx)
+        except click.exceptions.Exit:
+            raise
         except Exception as e:
             _logger.error("exception", exc_info=True)
             raise click.ClickException(str(e))
