@@ -6,7 +6,7 @@ import click
 config_opt = click.Option(
     ("--config", "-c"),
     envvar=["ODOO_RC", "OPENERP_SERVER"],
-    type=click.Path(exists=True, dir_okay=False),
+    type=click.Path(exists=True, dir_okay=True),
     help="Specify the Odoo configuration file. Other "
     "ways to provide it are with the ODOO_RC or "
     "OPENERP_SERVER environment variables, "
