@@ -3,13 +3,12 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html).
 
 import logging
-import runpy
 import sys
 from contextlib import closing
 
 import click
 
-from . import console, options
+from . import options
 from .env import OdooEnvironment, odoo
 
 _logger = logging.getLogger(__name__)
@@ -27,46 +26,28 @@ def _db_exists(dbname):
 
 
 class CommandWithOdooEnv(click.Command):
-    def __init__(self, env_options=None, default_overrides=None, *args, **kwargs):
+    def __init__(self, env_options=None, *args, **kwargs):
         env_options = env_options if env_options else {}
-        self.default_overrides = default_overrides if default_overrides else {}
         super(CommandWithOdooEnv, self).__init__(*args, **kwargs)
         self.database = None
         self.rollback = None
-        self.with_rollback = env_options.get("with_rollback", True)
-        self.with_database = env_options.get("with_database", True)
-        self.with_addons_path = env_options.get("with_addons_path", False)
         self.database_must_exist = env_options.get("database_must_exist", True)
-        self.database_required = self.with_database and env_options.get(
-            "database_required", True
-        )
         self.environment_manager = env_options.get(
             "environment_manager", OdooEnvironment
         )
-
-        self.env_params = {
-            options.config_opt,
-            options.addons_path_opt if self.with_addons_path else None,
-            options.db_opt if self.with_database else None,
-            options.log_level_opt,
-            options.logfile_opt,
-            options.rollback_opt if self.with_rollback else None,
-        }
-        self.env_params = [p for p in self.env_params if p]
-        self.params.extend(self.env_params)  # So they appear in --help
+        # Always present for an Odoo Environment
+        options.config_opt(self)
+        options.log_level_opt(self)
+        options.logfile_opt(self)
 
     def _parse_env_args(self, ctx):
         def _get(flag):
-            result = ctx.params.get(flag) or self.default_overrides.get(flag)
+            result = ctx.params.get(flag)
             if flag in ctx.params:
                 del ctx.params[flag]
             return result
 
         odoo_args = []
-        # reset db_name in case we come from a previous run
-        # where database has been set, in the second run the is no database
-        # (mostly for tests)
-        odoo.tools.config["db_name"] = None
 
         # fmt: off
         # Always present params
@@ -95,6 +76,7 @@ class CommandWithOdooEnv(click.Command):
 
     def load_odoo_config(self, ctx):
         series = odoo.release.version_info[0]
+        has_database_option = "database" in ctx.params
 
         def _fix_logging(series):
             if series < 9:
@@ -109,16 +91,13 @@ class CommandWithOdooEnv(click.Command):
         # see https://github.com/odoo/odoo/commit/b122217f74
         odoo.tools.config["load_language"] = None
         odoo.tools.config.parse_config(odoo_args)
-        self.database = odoo.tools.config["db_name"] if self.with_database else False
-        if self.database_required and not self.database:
-            raise click.UsageError(
-                "No database provided, please provide one with the -d "
-                "option or the Odoo configuration file."
-            )
+        # Lookup from config file
+        if has_database_option and not self.database:
+            self.database = odoo.tools.config["db_name"]
         if self.database and self.database_must_exist and not _db_exists(self.database):
             raise click.UsageError(
                 "The provided database does not exists and this script requires"
-                " an pre-existing database."
+                " a pre-existing database."
             )
         elif self.database and not _db_exists(self.database):
             self.database = False
@@ -141,36 +120,3 @@ class CommandWithOdooEnv(click.Command):
         except Exception as e:
             _logger.error("exception", exc_info=True)
             raise click.ClickException(str(e))
-
-
-@click.command(
-    cls=CommandWithOdooEnv,
-    env_options={"database_required": False, "with_addons_path": True},
-)
-@options.interactive_opt
-@options.shell_interface_opt
-@options.script_arg
-@options.script_args_arg
-def main(env, interactive, shell_interface, script, script_args):
-    """Execute a python script in an initialized Odoo environment. The script
-    has access to a 'ctx.env' global variable which is an odoo.api.Environment
-    initialized for the given database. If no script is provided, the script is
-    read from stdin or an interactive console is started if stdin appears to be
-    a terminal."""
-    global_vars = {"env": env}
-    if script:
-        sys.argv[1:] = script_args
-        global_vars = runpy.run_path(
-            script, init_globals=global_vars, run_name="__main__"
-        )
-    if not script or interactive:
-        if console._isatty(sys.stdin):
-            if not env:
-                _logger.info("No environment set, use `-d dbname` to get one.")
-            console.Shell.interact(global_vars, shell_interface)
-            if env:
-                env.cr.rollback()
-        else:
-            sys.argv[:] = [""]
-            global_vars["__name__"] = "__main__"
-            exec(sys.stdin.read(), global_vars)

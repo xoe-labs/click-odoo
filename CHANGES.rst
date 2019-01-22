@@ -5,7 +5,7 @@ Changes
 .. ----------
 .. - ...
 
-2.0.0 (2018-10-31)
+2.0.0 (2019-01-22)
 ------------------
 - refactor to click native facilities, where possible
 - replace ``@env_options()`` named parameters with ``context_settings``
@@ -13,19 +13,21 @@ Changes
 - replace ``@env_options`` wrapper with custom Command class
 - add ``default_overrides`` command key to manage script-scoped parameter
   defaults (eg. adjust default for ``log_level`` or ``rollback``)
+- Rename to dodoo
+- Add plugin facilities
 
 1.1.1 (2018-11-01)
 ------------------
-- add ``with_addons_path`` option to ``@click_odoo.env_options``
+- add ``with_addons_path`` option to ``@dodoo.env_options``
   to control the presence of the ``--addons-path`` option. Defaults to False.
-  Enabled for the ``click-odoo`` CLI.
+  Enabled for the CLI.
 
 1.1.0 (2018-10-31)
 ------------------
-- add ``environment_manager`` to ``@click_odoo.env_options``, providing
+- add ``environment_manager`` to ``@dodoo.env_options``, providing
   a hook on ``odoo.api.Environment`` creation.
 - add ``--addons-path`` option to the CLI.
-- add ``database_must_exist`` env option to ``@click_odoo.env_options``
+- add ``database_must_exist`` env option to ``@dodoo.env_options``
   so scripts can behave how they please in case the database is absent.
 
 1.0.4 (2018-10-07)
@@ -49,7 +51,7 @@ Changes
 1.0.1 (2018-05-27)
 ------------------
 - better error logging and handling: all exceptions occuring
-  in scripts under click_odoo.env_options are logged and converted
+  in scripts under dodoo.env_options are logged and converted
   to ClickException so we are sure they are both in the log file
   and on the console (handled by click) for the user to see.
   The OdooEnvironment context manager does not do additional logging,
@@ -58,9 +60,9 @@ Changes
 1.0.0 (2018-05-20)
 ------------------
 - close db connections when releasing OdooEnvironment
-- expose click_odoo.odoo_bin (odoo or openerp-server depending on Odoo series).
+- expose dodoo.odoo_bin (odoo or openerp-server depending on Odoo series).
   not documented yet, because it should ideally be a full path corresponding
-  to the installed click_odoo.odoo, and I'm not sure how best to detect it yet.
+  to the installed dodoo.odoo, and I'm not sure how best to detect it yet.
 
 1.0.0b4 (2018-05-17)
 --------------------
@@ -71,7 +73,7 @@ Changes
 
 1.0.0b3 (2018-03-22)
 --------------------
-- click_odoo now exports the odoo namespace: ``from click_odoo import odoo``
+- dodoo now exports the odoo namespace: ``from dodoo import odoo``
   is an alias for ``import odoo`` (>9) or ``import openerp as odoo`` (<=9)
 - add a ``with_rollback`` option to the ``env_options`` decorator, to control
   the presence of the rollback option
@@ -95,7 +97,7 @@ Changes
 --------------------
 - improve transaction management: avoid some rare deadlock
 - avoid masking original exception in case of error during rollback
-- make sure scripts launched by click-odoo have ``__name__ == '__main__'``
+- make sure launched scripts have ``__name__ == '__main__'``
 - add ``--logfile option``
 
 1.0.0a1 (2018-03-19)

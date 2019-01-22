@@ -1,20 +1,18 @@
-click-odoo
-===========
+dodoo
+=====
 
 .. image:: https://img.shields.io/badge/license-LGPL--3-blue.svg
    :target: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
    :alt: License: LGPL-3
-.. image:: https://badge.fury.io/py/click-odoo.svg
-    :target: http://badge.fury.io/py/click-odoo
-.. image:: https://travis-ci.org/acsone/click-odoo.svg?branch=master
-   :target: https://travis-ci.org/acsone/click-odoo
-.. image:: https://codecov.io/gh/acsone/click-odoo/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/acsone/click-odoo
+.. image:: https://badge.fury.io/py/dodoo.svg
+    :target: http://badge.fury.io/py/dodoo
+.. image:: https://travis-ci.org/xoe-labs/dodoo.svg?branch=master
+   :target: https://travis-ci.org/xoe-labs/dodoo
+.. image:: https://codecov.io/gh/xoe-labs/dodoo/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/xoe-labs/dodoo
 
-``click-odoo`` helps you create and run beautiful and robust command line scripts
-for Odoo. It is based on the excellent Click_ library.
-
-Useful community-managed scripts can be found in click-odoo-contrib_.
+``dodoo`` is a beautiful, robust and extensible Odoo server API extension suite
+for DevOps. It is based on the excellent Click_ library.
 
 .. contents::
 
@@ -23,13 +21,16 @@ Quick start
 
 Install it in an environment where Odoo is installed,
 
-  pip install click-odoo
+  pip install dodoo
+
+
+Custom scripts
+~~~~~~~~~~~~~~
 
 Assuming the following script named ``list-users.py``.
 
 .. code:: python
 
-   #!/usr/bin/env click-odoo
    from __future__ import print_function
 
    for u in env['res.users'].search([]):
@@ -37,13 +38,9 @@ Assuming the following script named ``list-users.py``.
 
 It can be run with::
 
-  click-odoo -d dbname --log-level=error list-users.py
+  dodoo run -d dbname --log-level=error list-users.py
 
-or::
-
-  ./list-users.py -d dbname --log-level=error
-
-The third technique to create scripts looks like this. Assuming
+The second technique to create scripts looks like this. Assuming
 the following script named ``list-users2.py``.
 
 .. code:: python
@@ -52,12 +49,13 @@ the following script named ``list-users2.py``.
   from __future__ import print_function
   import click
 
-  import click_odoo
+  import dodoo
 
+  CTX_SETTINGS = dict(
+      default_map={'log_level': 'error'}
+  )
 
-  @click.command(
-    cls=click_odoo.CommandWithOdooEnv,
-    context_settings={'log_level':'error'})
+  @click.command(cls=dodoo.CommandWithOdooEnv, context_settings=CTX_SETTINGS)
   @click.option('--say-hello', is_flag=True)
   def main(env, say_hello):
       if say_hello:
@@ -100,6 +98,48 @@ It can be run like this::
   admin Administrator
   ...
 
+dodoo Plugins
+~~~~~~~~~~~~~
+
+For extending tha comfort of the dodoo API itself, you can write a plugin.
+It's recommended to clone the plugin scaffolding_ repository to get started.
+
+The plugin registration is done in ``setup.py`` like this:
+
+.. code:: python
+
+  from setuptools import setup
+
+  setup(
+      name='yourplugin',
+      version='0.1',
+      py_modules=['yourplugin'],
+      install_requires=[
+          'dodoo',
+      ],
+      entry_points='''
+          [core_package.cli_plugins]
+          cool_subcommand=yourscript.cli:cool_subcommand
+          another_subcommand=yourscript.cli:another_subcommand
+      ''',
+  )
+
+Aside from accessing dodoo options through ``ctx.obj`` implicitly, you can be
+explicite by reusing dodoo options in the following way:
+
+.. code:: python
+
+  import click
+  from dodoo import options
+
+
+  @click.command()
+  # Set the addons path options and make it mandatory, see options.py
+  @options.addons_path_opt(True)
+  def subcommand(addons_path):
+      """I do something domain specific."""
+
+
 Supported Odoo versions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -110,14 +150,14 @@ across Odoo versions.
 
 .. note::
 
-  ``click-odoo`` does not mandate any particular method of installing odoo.
+  ``dodoo`` does not mandate any particular method of installing odoo.
   The only prerequisiste is that ``import odoo`` (>= 10) or ``import openerp``
   (< 10) must work.
 
 Database transactions
 ~~~~~~~~~~~~~~~~~~~~~
 
-By default ``click-odoo`` commits the transaction for you, unless your script
+By default ``dodoo`` commits the transaction for you, unless your script
 raises an exception. This is so that you don't need to put explicit commits
 in your scripts, which are therefore easier to compose in larger transactions
 (provided they pass around the same env).
@@ -131,17 +171,17 @@ Logging
 ~~~~~~~
 
 In version 8, Odoo logs to stdout by default. On other versions
-it is stderr. ``click-odoo`` attempts to use stderr for Odoo 8 too.
+it is stderr. ``dodoo`` attempts to use stderr for Odoo 8 too.
 
 Logging is controlled by the usual Odoo logging options (``--log-level``,
 ``--logfile``) or the Odoo configuration file.
 
-Command line interface (click-odoo)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Command line interface (dodoo)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code::
 
-  Usage: click-odoo [OPTIONS] [SCRIPT] [SCRIPT_ARGS]...
+  Usage: dodoo [OPTIONS] [SCRIPT] [SCRIPT_ARGS]...
 
     Execute a python script in an initialized Odoo environment. The script has
     access to a 'env' global variable which is an odoo.api.Environment
@@ -186,13 +226,13 @@ Additional Odoo options can be set in the the configuration file.
 Note however that most server-related options (workers, http interface etc)
 are ignored because no server is actually started when running a script.
 
-An important feature of ``click-odoo`` compared to, say, ``odoo shell`` is
+An important feature of ``dodoo`` compared to, say, ``odoo shell`` is
 the capability to pass arguments to scripts.
 
-In order to avoid confusion between ``click-odoo`` options and your script
+In order to avoid confusion between ``dodoo`` options and your script
 options and arguments, it is recommended to separate them with ``--``::
 
-  click-odoo -d dbname -- list-users.py -d a b
+  dodoo -d dbname -- list-users.py -d a b
   ./list-users.py -d dbname -- -d a b
 
 In both examples above, ``sys.argv[1:]`` will contain ``['-d', 'a', 'b']``
@@ -204,32 +244,13 @@ API
 ``env_options``
 ---------------
 
-Customize the behaviour of ``click_odoo.CommandWithOdooEnv`` through
+Customize the behaviour of ``dodoo.CommandWithOdooEnv`` through
 ``click.Command(env_options={})``.
 
-``click_odoo.CommandWithOdooEnv`` prepares an odoo ``Environment`` and passes
+``dodoo.CommandWithOdooEnv`` prepares an odoo ``Environment`` and passes
 it as a ``env`` parameter.
 
 It is configurable with the following keyword arguments in ``env_options``:
-
-with_rollback
-  Controls the presence of the ``--rollback`` option (default: True).
-  This is useful for creating commands that commit and leave no possibility
-  for rollback.
-
-with_database
-  Controls the presence of the ``--database`` option (default: True).
-  This is useful to create scripts that have access to a pre-loaded Odoo
-  configuration, without any database. In such case, the environment
-  is not set (env is None). If ``with_database`` is False,
-  ``database_required`` is implied to be False too.
-
-with_addons_path
-  Controls the presence of the ``--addons-path`` option (default: False).
-
-database_required
-  Controls if a database must be provided through the ``--database``
-  option or the Odoo configuration file (default: True).
 
 database_must_exist
   If this flag is False and the selected database does not exist
@@ -247,23 +268,11 @@ environment_manager
     environment_manager(database, rollback, **kwargs)
 
 
-``default_overrides``
----------------------
+dodoo.odoo namespace
+--------------------
 
-Override defaults for command flags via the ``default_overrides`` keyword
-argument:
-
-log_level
-  The default value for the ``--log-level`` option (default: 'info').
-
-rollback
-  The default value for the ``--rollback`` option (default: False).
-
-click_odoo.odoo namespace
--------------------------
-
-As a convenience ``click_odoo`` exports the ``odoo`` namespace, so
-``from click_odoo import odoo`` is an alias for ``import odoo`` (>9)
+As a convenience ``dodoo`` exports the ``odoo`` namespace, so
+``from dodoo import odoo`` is an alias for ``import odoo`` (>9)
 or ``import openerp as odoo`` (<=9).
 
 OdooEnvironment context manager (experimental)
@@ -284,7 +293,7 @@ Example:
 
 .. code:: python
 
-  from click_odoo import OdooEnvironment
+  from dodoo import OdooEnvironment
 
 
   with OdooEnvironment(database='dbname') as env:
@@ -307,17 +316,17 @@ run ``pre-commit install`` after cloning the repository.
 Useful links
 ~~~~~~~~~~~~
 
-- pypi page: https://pypi.org/project/click-odoo
-- code repository: https://github.com/acsone/click-odoo
-- report issues at: https://github.com/acsone/click-odoo/issues
+- pypi page: https://pypi.org/project/dodoo
+- code repository: https://github.com/xoe-labs/dodoo
+- report issues at: https://github.com/xoe-labs/dodoo/issues
 
 .. _Click: http://click.pocoo.org
-.. _click-odoo-contrib: https://pypi.python.org/pypi/click-odoo-contrib
+.. _scaffolding: https://github.com/coe-labs/dodoo-plugin-scaffold
 
 Credits
 ~~~~~~~
 
-Author:
+Original Author:
 
 - Stéphane Bidoul (`ACSONE <http://acsone.eu/>`_)
 
@@ -325,8 +334,13 @@ Contributor:
 
 - David Arnold (`XOE <https://xoe.solutions>`_)
 
+Maintainer:
+
+- David Arnold (`XOE <https://xoe.solutions>`_)
+
 Inspiration has been drawn from:
 
+- `click-odoo by Acsone <https://github.com/acsone/click-odoo>`_
 - `anybox.recipe.odoo <https://github.com/anybox/anybox.recipe.odoo>`_
 - `anthem by Camptocamp <https://github.com/camptocamp/anthem>`_
 - odoo's own shell command
@@ -334,8 +348,8 @@ Inspiration has been drawn from:
 Maintainer
 ~~~~~~~~~~
 
-.. image:: https://www.acsone.eu/logo.png
-   :alt: ACSONE SA/NV
-   :target: https://www.acsone.eu
+.. image:: https://erp.xoe.solutions/logo.png
+   :alt: XOE Corp. SAS
+   :target: https://xoe.solutions
 
-This project is maintained by ACSONE SA/NV.
+This project is maintained by XOE Corp. SAS.

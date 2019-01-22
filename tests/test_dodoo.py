@@ -12,8 +12,8 @@ import psycopg2
 import pytest
 from click.testing import CliRunner
 
-from click_odoo import CommandWithOdooEnv, OdooEnvironment, console, odoo, odoo_bin
-from click_odoo.cli import main
+from dodoo import CommandWithOdooEnv, OdooEnvironment, console, odoo, odoo_bin, options
+from dodoo.cli import run
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -34,10 +34,10 @@ def _drop_db(dbname):
 
 @pytest.fixture(scope="session")
 def odoodb():
-    if "CLICK_ODOO_TEST_DB" in os.environ:
-        yield os.environ["CLICK_ODOO_TEST_DB"]
+    if "DODOO_TEST_DB" in os.environ:
+        yield os.environ["DODOO_TEST_DB"]
     else:
-        dbname = "click-odoo-test-" + odoo.release.version.replace(".", "-")
+        dbname = "dodoo-test-" + odoo.release.version.replace(".", "-")
         try:
             _init_odoo_db(dbname)
             yield dbname
@@ -46,17 +46,17 @@ def odoodb():
 
 
 def test_odoo_env(odoodb, mocker):
-    self = mocker.patch("click_odoo.CommandWithOdooEnv")
+    self = mocker.patch("dodoo.CommandWithOdooEnv")
     self.database = odoodb
     with OdooEnvironment(self) as env:
         admin = env["res.users"].search([("login", "=", "admin")])
         assert len(admin) == 1
 
 
-def test_click_odoo(odoodb):
+def test_dodoo(odoodb):
     """ Test simple access to env in script """
     script = os.path.join(here, "scripts", "script1.py")
-    cmd = ["click-odoo", "-d", odoodb, script]
+    cmd = ["dodoo", "run", "-d", odoodb, script]
     result = subprocess.check_output(cmd, universal_newlines=True)
     assert result == "admin\n"
 
@@ -65,38 +65,15 @@ def test_cli_runner(odoodb):
     """ Test simple access to env in script (through click CliRunner) """
     script = os.path.join(here, "scripts", "script1.py")
     runner = CliRunner()
-    result = runner.invoke(main, ["-d", odoodb, script])
+    result = runner.invoke(run, ["-d", odoodb, script])
     assert result.exit_code == 0
     assert result.output == "admin\n"
 
 
-def test_click_odoo_args(odoodb):
+def test_dodoo_args(odoodb):
     """ Test sys.argv in script """
     script = os.path.join(here, "scripts", "script2.py")
-    cmd = ["click-odoo", "-d", odoodb, "--", script, "a", "-b", "-d"]
-    result = subprocess.check_output(cmd, universal_newlines=True)
-    assert result == textwrap.dedent(
-        """\
-        sys.argv = {} a -b -d
-        __name__ = __main__
-    """.format(
-            script
-        )
-    )
-
-
-def test_click_odoo_shebang(odoodb):
-    """ Test simple access to env in script with click-odoo shebang """
-    script = os.path.join(here, "scripts", "script1.py")
-    cmd = [script, "-d", odoodb]
-    result = subprocess.check_output(cmd, universal_newlines=True)
-    assert result == "admin\n"
-
-
-def test_click_odoo_shebang_args(odoodb):
-    """ Test script arguments (with click-odoo shebang) """
-    script = os.path.join(here, "scripts", "script2.py")
-    cmd = [script, "-d", odoodb, "--", "a", "-b", "-d"]
+    cmd = ["dodoo", "run", "-d", odoodb, "--", script, "a", "-b", "-d"]
     result = subprocess.check_output(cmd, universal_newlines=True)
     assert result == textwrap.dedent(
         """\
@@ -114,7 +91,7 @@ def test_interactive_no_script(mocker, odoodb):
     mocker.patch.object(console, "_isatty", return_value=True)
 
     runner = CliRunner()
-    result = runner.invoke(main, ["-d", odoodb])
+    result = runner.invoke(run, ["-d", odoodb])
     assert result.exit_code == 0
     assert console.Shell.ipython.call_count == 1
     assert console.Shell.python.call_count == 0
@@ -126,7 +103,7 @@ def test_interactive_no_script_preferred_shell(mocker, odoodb):
     mocker.patch.object(console, "_isatty", return_value=True)
 
     runner = CliRunner()
-    result = runner.invoke(main, ["-d", odoodb, "--shell-interface=python"])
+    result = runner.invoke(run, ["-d", odoodb, "--shell-interface=python"])
     assert result.exit_code == 0
     assert console.Shell.ipython.call_count == 0
     assert console.Shell.python.call_count == 1
@@ -134,7 +111,7 @@ def test_interactive_no_script_preferred_shell(mocker, odoodb):
 
 def test_logging_stderr(capfd, odoodb):
     script = os.path.join(here, "scripts", "script3.py")
-    cmd = ["click-odoo", "-d", odoodb, "--", script]
+    cmd = ["dodoo", "run", "-d", odoodb, "--", script]
     subprocess.check_call(cmd)
     out, err = capfd.readouterr()
     assert not out
@@ -145,7 +122,7 @@ def test_logging_stderr(capfd, odoodb):
 def test_logging_logfile(tmpdir, capfd, odoodb):
     script = os.path.join(here, "scripts", "script3.py")
     logfile = tmpdir.join("mylogfile")
-    cmd = ["click-odoo", "-d", odoodb, "--logfile", str(logfile), "--", script]
+    cmd = ["dodoo", "run", "-d", odoodb, "--logfile", str(logfile), "--", script]
     subprocess.check_call(cmd)
     out, err = capfd.readouterr()
     assert not out
@@ -154,8 +131,9 @@ def test_logging_logfile(tmpdir, capfd, odoodb):
     assert "hello from script3" in logcontent
 
 
-def test_env_options_withdb(odoodb, tmpdir):
+def test_withdb(odoodb, tmpdir):
     @click.command(cls=CommandWithOdooEnv)
+    @options.db_opt(True)
     def testcmd(env):
         login = env["res.users"].search([("login", "=", "admin")]).login
         click.echo("login={}".format(login))
@@ -194,13 +172,14 @@ def test_env_options_withdb(odoodb, tmpdir):
     assert result.exit_code == 0
     assert "login=admin\n" in result.output
     # no -d, error
+    odoo.tools.config["db_name"] = None  # Reset the defaulting mechanism
     result = runner.invoke(testcmd, [])
     assert result.exit_code != 0
-    assert "No database provided" in result.output
+    assert 'Missing option "--database"' in result.output
 
 
-def test_env_options_nodb(odoodb, tmpdir):
-    @click.command(cls=CommandWithOdooEnv, env_options={"with_database": False})
+def test_nodb(odoodb, tmpdir):
+    @click.command(cls=CommandWithOdooEnv)
     def testcmd(env):
         assert not env
 
@@ -228,8 +207,9 @@ def test_env_options_nodb(odoodb, tmpdir):
     assert result.exit_code == 0
 
 
-def test_env_options_optionaldb(odoodb, tmpdir):
-    @click.command(cls=CommandWithOdooEnv, env_options={"database_required": False})
+def test_optionaldb(odoodb, tmpdir):
+    @click.command(cls=CommandWithOdooEnv)
+    @options.db_opt(False)
     def testcmd(env):
         if env:
             print("with env")
@@ -238,6 +218,7 @@ def test_env_options_optionaldb(odoodb, tmpdir):
 
     # no database
     runner = CliRunner()
+    odoo.tools.config["db_name"] = None  # Reset the defaulting mechanism
     result = runner.invoke(testcmd, [])
     assert result.exit_code == 0
     assert "without env" in result.output
@@ -265,6 +246,7 @@ def test_env_options_optionaldb(odoodb, tmpdir):
 
 def test_env_options_database_must_exist(odoodb):
     @click.command(cls=CommandWithOdooEnv, env_options={"database_must_exist": False})
+    @options.db_opt(True)
     def testcmd(env):
         if env:
             print("with env")
@@ -272,6 +254,7 @@ def test_env_options_database_must_exist(odoodb):
             print("without env")
 
     @click.command(cls=CommandWithOdooEnv)
+    @options.db_opt(True)
     def testcmd_must_exist(env):
         pass
 
@@ -328,7 +311,7 @@ def test_write_commit_in_script(odoodb):
     """ test commit in script """
     _cleanup_testparam(odoodb)
     script = os.path.join(here, "scripts", "script4.py")
-    cmd = ["click-odoo", "-d", odoodb, "--", script, "commit"]
+    cmd = ["dodoo", "run", "-d", odoodb, "--", script, "commit"]
     subprocess.check_call(cmd)
     _assert_testparam_present(odoodb, "testvalue")
 
@@ -337,34 +320,37 @@ def test_write_rollback_in_script(odoodb):
     """ test rollback in script """
     _cleanup_testparam(odoodb)
     script = os.path.join(here, "scripts", "script4.py")
-    cmd = ["click-odoo", "-d", odoodb, "--", script, "rollback"]
+    cmd = ["dodoo", "run", "-d", odoodb, "--", script, "rollback"]
     subprocess.check_call(cmd)
     _assert_testparam_absent(odoodb)
 
 
 def test_write_defaulttx(odoodb):
-    """ test click-odoo commits itself """
+    """ test dodoo commits itself """
     _cleanup_testparam(odoodb)
     script = os.path.join(here, "scripts", "script4.py")
-    cmd = ["click-odoo", "-d", odoodb, "--", script]
+    cmd = ["dodoo", "run", "-d", odoodb, "--", script]
     subprocess.check_call(cmd)
     _assert_testparam_present(odoodb, "testvalue")
 
 
 def test_write_rollback(odoodb):
-    """ test click-odoo rollbacks itself """
+    """ test dodoo rollbacks itself """
     _cleanup_testparam(odoodb)
     script = os.path.join(here, "scripts", "script4.py")
-    cmd = ["click-odoo", "--rollback", "-d", odoodb, "--", script]
+    cmd = ["dodoo", "run", "--rollback", "-d", odoodb, "--", script]
     subprocess.check_call(cmd)
     _assert_testparam_absent(odoodb)
 
 
 def test_write_default_rollback(odoodb):
-    """ test click-odoo rollbacks itself via default_overrides """
+    """ test dodoo rollbacks itself via default_map """
     _cleanup_testparam(odoodb)
 
-    @click.command(cls=CommandWithOdooEnv, default_overrides={"rollback": True})
+    @click.command(
+        cls=CommandWithOdooEnv, context_settings=dict(default_map={"rollback": True})
+    )
+    @options.rollback_opt()
     def testcmd(env):
         env = env  # noqa
         env["ir.config_parameter"].set_param("testparam", "testvalue")
@@ -375,7 +361,7 @@ def test_write_default_rollback(odoodb):
 
 
 def test_write_interactive_defaulttx(mocker, odoodb):
-    """ test click-odoo rollbacks in interactive mode """
+    """ test dodoo rollbacks in interactive mode """
     mocker.patch.object(console.Shell, "python")
     mocker.patch.object(console, "_isatty", return_value=True)
 
@@ -383,7 +369,7 @@ def test_write_interactive_defaulttx(mocker, odoodb):
     runner = CliRunner()
     script = os.path.join(here, "scripts", "script4.py")
     cmd = ["-d", odoodb, "--interactive", "--", script]
-    result = runner.invoke(main, cmd)
+    result = runner.invoke(run, cmd)
     assert result.exit_code == 0
     _assert_testparam_absent(odoodb)
 
@@ -391,7 +377,7 @@ def test_write_interactive_defaulttx(mocker, odoodb):
 def test_write_stdin_defaulttx(odoodb):
     _cleanup_testparam(odoodb)
     script = os.path.join(here, "scripts", "script4.py")
-    cmd = ["click-odoo", "-d", odoodb, "<", script]
+    cmd = ["dodoo", "run", "-d", odoodb, "<", script]
     subprocess.check_call(" ".join(cmd), shell=True)
     _assert_testparam_present(odoodb, "testvalue")
 
@@ -401,7 +387,17 @@ def test_write_raise(tmpdir, capfd, odoodb):
     _cleanup_testparam(odoodb)
     script = os.path.join(here, "scripts", "script4.py")
     logfile = tmpdir.join("mylogfile")
-    cmd = ["click-odoo", "-d", odoodb, "--logfile", str(logfile), "--", script, "raise"]
+    cmd = [
+        "dodoo",
+        "run",
+        "-d",
+        odoodb,
+        "--logfile",
+        str(logfile),
+        "--",
+        script,
+        "raise",
+    ]
     r = subprocess.call(cmd)
     assert r != 0
     logcontent = logfile.read()
@@ -414,7 +410,7 @@ def test_write_raise(tmpdir, capfd, odoodb):
 def test_env_cache(odoodb, mocker):
     """ test a new environment does not reuse cache """
     _cleanup_testparam(odoodb)
-    self = mocker.patch("click_odoo.CommandWithOdooEnv")
+    self = mocker.patch("dodoo.CommandWithOdooEnv")
     self.database = odoodb
     with OdooEnvironment(self) as env:
         env["ir.config_parameter"].set_param("testparam", "testvalue")
@@ -429,10 +425,10 @@ def test_env_cache(odoodb, mocker):
         assert not value
 
 
-def test_env_options_addons_path():
+def test_addons_path():
     script = os.path.join(here, "scripts", "script5.py")
 
-    cmd = ["click-odoo", "--", script]
+    cmd = ["dodoo", "run", "--", script]
     r = subprocess.call(cmd)
     assert r != 0  # addon1 not found in addons path
 
@@ -443,6 +439,6 @@ def test_env_options_addons_path():
         ]
     )
 
-    cmd = ["click-odoo", "--addons-path", addons_path, "--", script]
+    cmd = ["dodoo", "run", "--addons-path", addons_path, "--", script]
     r = subprocess.call(cmd)
     assert r == 0

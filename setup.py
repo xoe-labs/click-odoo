@@ -15,18 +15,19 @@ with open(os.path.join("CHANGES.rst")) as f:
 
 
 setup(
-    name="click-odoo",
-    description="Beautiful, robust CLI for Odoo",
+    name="dodoo",
+    description="Beautiful, robust and extensible Odoo server API "
+    "extension suite for DevOps.",
     long_description="\n".join(long_description),
     use_scm_version=True,
-    packages=["click_odoo"],
+    packages=["dodoo"],
     include_package_data=True,
     setup_requires=["setuptools_scm"],
-    install_requires=["click"],
+    install_requires=["click", "click-plugins"],
     license="LGPLv3+",
-    author="ACSONE SA/NV",
-    author_email="info@acsone.eu",
-    url="http://github.com/acsone/click-odoo",
+    author="XOE Corp. SAS",
+    author_email="info@xoe.solutions",
+    url="http://github.com/xoe-labs/dodoo",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
@@ -39,6 +40,6 @@ setup(
     ],
     entry_points="""
         [console_scripts]
-        click-odoo=click_odoo.cli:main
+        dodoo=dodoo.cli:main
     """,
 )
