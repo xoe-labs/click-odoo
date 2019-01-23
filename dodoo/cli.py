@@ -11,9 +11,11 @@ from pkg_resources import iter_entry_points
 
 from . import commands, console, options
 
+CONTEXT_SETTINGS = dict(auto_envvar_prefix="DODOO")
+
 
 @with_plugins(iter_entry_points("core_package.cli_plugins"))
-@click.group()
+@click.group(context_settings=CONTEXT_SETTINGS)
 def main():
     """Commandline interface for yourpackage."""
     pass

@@ -13,7 +13,7 @@ import pytest
 from click.testing import CliRunner
 
 from dodoo import CommandWithOdooEnv, OdooEnvironment, console, odoo, odoo_bin, options
-from dodoo.cli import run
+from dodoo.cli import main
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -65,7 +65,7 @@ def test_cli_runner(odoodb):
     """ Test simple access to env in script (through click CliRunner) """
     script = os.path.join(here, "scripts", "script1.py")
     runner = CliRunner()
-    result = runner.invoke(run, ["-d", odoodb, script])
+    result = runner.invoke(main, ["run", "-d", odoodb, script])
     assert result.exit_code == 0
     assert result.output == "admin\n"
 
@@ -91,7 +91,7 @@ def test_interactive_no_script(mocker, odoodb):
     mocker.patch.object(console, "_isatty", return_value=True)
 
     runner = CliRunner()
-    result = runner.invoke(run, ["-d", odoodb])
+    result = runner.invoke(main, ["run", "-d", odoodb])
     assert result.exit_code == 0
     assert console.Shell.ipython.call_count == 1
     assert console.Shell.python.call_count == 0
@@ -103,7 +103,21 @@ def test_interactive_no_script_preferred_shell(mocker, odoodb):
     mocker.patch.object(console, "_isatty", return_value=True)
 
     runner = CliRunner()
-    result = runner.invoke(run, ["-d", odoodb, "--shell-interface=python"])
+    result = runner.invoke(main, ["run", "-d", odoodb, "--shell-interface=python"])
+    assert result.exit_code == 0
+    assert console.Shell.ipython.call_count == 0
+    assert console.Shell.python.call_count == 1
+
+
+def test_auto_env_prefix(mocker, odoodb):
+    mocker.patch.object(console.Shell, "ipython")
+    mocker.patch.object(console.Shell, "python")
+    mocker.patch.object(console, "_isatty", return_value=True)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        main, ["run", "-d", odoodb], env={"DODOO_RUN_SHELL_INTERFACE": "python"}
+    )
     assert result.exit_code == 0
     assert console.Shell.ipython.call_count == 0
     assert console.Shell.python.call_count == 1
@@ -368,8 +382,8 @@ def test_write_interactive_defaulttx(mocker, odoodb):
     _cleanup_testparam(odoodb)
     runner = CliRunner()
     script = os.path.join(here, "scripts", "script4.py")
-    cmd = ["-d", odoodb, "--interactive", "--", script]
-    result = runner.invoke(run, cmd)
+    cmd = ["run", "-d", odoodb, "--interactive", "--", script]
+    result = runner.invoke(main, cmd)
     assert result.exit_code == 0
     _assert_testparam_absent(odoodb)
 
