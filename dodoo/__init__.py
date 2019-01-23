@@ -5,4 +5,5 @@ from .commands import CommandWithOdooEnv  # noqa
 from .env import OdooEnvironment  # noqa
 from .env import odoo  # noqa
 from .env import odoo_bin  # noqa
+from .cli import main  # noqa
 from . import options  # noqa

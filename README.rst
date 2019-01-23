@@ -130,10 +130,10 @@ explicite by reusing dodoo options in the following way:
 .. code:: python
 
   import click
-  from dodoo import options
+  from dodoo import options, main
 
 
-  @click.command()
+  @main.command()
   # Set the addons path options and make it mandatory, see options.py
   @options.addons_path_opt(True)
   def subcommand(addons_path):
