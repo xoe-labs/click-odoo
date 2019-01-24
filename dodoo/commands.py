@@ -104,6 +104,22 @@ class CommandWithOdooEnv(click.Command):
         _fix_logging(series)
         odoo.cli.server.report_configuration()
 
+    def make_context(self, info_name, args, parent=None, **extra):
+        # Intercept argument parsing and preload the config file defaults into
+        # memory so that flag defaults use odoo defaults
+        odoo_args = []
+        if "-c" in args:
+            odoo_args.extend(["-c", args[args.index("-c") + 1]])
+        if "--config" in args:
+            odoo_args.extend(["-c", args[args.index("--config") + 1]])
+        # see https://github.com/odoo/odoo/commit/b122217f74
+        odoo.tools.config["load_language"] = None
+        # Don't init logger or syspath, yet, hence _parse_config vs parse_config
+        odoo.tools.config._parse_config(odoo_args)
+        return super(CommandWithOdooEnv, self).make_context(
+            info_name, args, parent=parent, **extra
+        )
+
     def invoke(self, ctx):
         self.load_odoo_config(ctx)
         try:
