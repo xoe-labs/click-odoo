@@ -3,6 +3,7 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html).
 
 import logging
+import os
 import sys
 from contextlib import closing
 
@@ -76,6 +77,9 @@ class CommandWithOdooEnv(click.Command):
 
     def load_odoo_config(self, ctx):
         series = odoo.release.version_info[0]
+        # Reset ad_paths because previous imports could have already partially
+        # set it. This can result in the wrong addons path loading order
+        odoo.modules.module.ad_paths = []
         has_database_option = "database" in ctx.params
 
         def _fix_logging(series):
@@ -108,13 +112,18 @@ class CommandWithOdooEnv(click.Command):
         # Intercept argument parsing and preload the config file defaults into
         # memory so that flag defaults use odoo defaults
         odoo_args = []
+        rc_env = os.environ.get("ODOO_RC") or os.environ.get("OPENERP_SERVER")
         if "-c" in args:
             odoo_args.extend(["-c", args[args.index("-c") + 1]])
-        if "--config" in args:
+        elif "--config" in args:
             odoo_args.extend(["-c", args[args.index("--config") + 1]])
+        elif rc_env:
+            odoo_args.extend(["-c", rc_env])
         # see https://github.com/odoo/odoo/commit/b122217f74
         odoo.tools.config["load_language"] = None
         # Don't init logger or syspath, yet, hence _parse_config vs parse_config
+        # Note: syspath is partially initialized also in odoo.modules.module
+        # See odoo.modules.module.ad_paths override above.
         odoo.tools.config._parse_config(odoo_args)
         return super(CommandWithOdooEnv, self).make_context(
             info_name, args, parent=parent, **extra
