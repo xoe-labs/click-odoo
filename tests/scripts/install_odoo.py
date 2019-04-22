@@ -42,6 +42,13 @@ def clone_odoo():
 
 
 def install_odoo():
+    # Temporal fix pyyaml version
+    # Check details at PR: https://github.com/odoo/odoo/pull/32859
+    if sys.version[0:3] < "3.7":
+        subprocess.check_call(["pip", "install", "PyYAML==3.12"])
+    else:
+        subprocess.check_call(["pip", "install", "PyYAML==3.13"])
+
     subprocess.check_call(["pip", "install", "-e", odoo_dir])
 
 
