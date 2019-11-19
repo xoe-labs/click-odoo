@@ -8,9 +8,9 @@ from setuptools import setup
 here = os.path.abspath(os.path.dirname(__file__))
 
 long_description = []
-with open(os.path.join("README.rst")) as f:
+with open(os.path.join("README.md")) as f:
     long_description.append(f.read())
-with open(os.path.join("CHANGES.rst")) as f:
+with open(os.path.join("CHANGES.md")) as f:
     long_description.append(f.read())
 
 
