@@ -46,7 +46,7 @@ $ dodoo --help
 - [`dodoo migrate`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-migrate#readme) - manage the migration lifecycle end-to-end
 - [`dodoo translate`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-translate#readme) - export translation files to a translation server
 
-/ * "done right": no broken built-in scheduler, bare wsgi app, with json equivalent config for easy override
+\* "done right": no broken built-in scheduler, bare wsgi app, with json equivalent config for easy override
 
 
 ## Contribute
