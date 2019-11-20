@@ -47,7 +47,7 @@ $ dodoo --help
 - [`dodoo translate`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-translate#readme) - export translation files to a translation server
 - [`dodoo load`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-load#readme) - state and boilerplate for ETL loading
 
-\* "done right": no broken built-in scheduler, bare wsgi app, with json equivalent config for easy override
+\* "done right": no broken built-in scheduler, bare wsgi app, with json equivalent config for easy override, ssh-key for instance identity & backup encryption
 
 
 ## Contribute
