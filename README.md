@@ -41,10 +41,11 @@ $ dodoo --help
 - `dodoo` - the Odoo Server middleware, done right *
 - [`dodoo init`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-init#readme) - launch an Odoo database, eventually from a hashed db cache
 - [`dodoo copy`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-copy#readme) - copy an Odoo database and **augment** it
-- [`dodoo snapshot`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-snapshot#readme) - snapshot a database incrementally to "X" (disk, s3, sshfs, ...)
+- [`dodoo backup`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-backup#readme) - backup a database incrementally to "X" (disk, s3, sshfs, ...)
 - [`dodoo test`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-test#readme) - test your code with pytest and CI formateable output
 - [`dodoo migrate`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-migrate#readme) - manage the migration lifecycle end-to-end
 - [`dodoo translate`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-translate#readme) - export translation files to a translation server
+- [`dodoo load`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-load#readme) - state and boilerplate for ETL loading
 
 \* "done right": no broken built-in scheduler, bare wsgi app, with json equivalent config for easy override
 
