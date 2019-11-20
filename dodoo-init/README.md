@@ -5,8 +5,8 @@
 `dodoo init` subcommand initializes a database on the given db conection and -
 optionally - installs a module list and/or executes raw SQL.
 
-It keeps a specially prefixed  db / filstore cache so that subsequent inits are
-accelerated. A hash is built over the listed module dirs to keep cache
+It keeps a specially prefixed  db / attachment cache so that subsequent inits
+are accelerated. A hash is built over the listed module dirs to keep cache
 consistent with your code and clear as needed.
 
 Executing raw SQL permits you to do advanced, eventually templated, database
