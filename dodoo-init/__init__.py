@@ -129,8 +129,8 @@ def addons_digest(module_names, with_demo):
     show_default=True,
     help="Comma separated list of addons to install.",
 )
-@click.option("--with-demo", flag=True, help="Load Odoo demo data.")
-@click.option("--no-cache", flag=True, help="Don't use cache.")
+@click.option("--with-demo", is_flag=True, help="Load Odoo demo data.")
+@click.option("--no-cache", is_flag=True, help="Don't use cache.")
 @click.option(
     "--cache-prefix",
     default="cache",
