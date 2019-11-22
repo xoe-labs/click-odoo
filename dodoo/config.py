@@ -7,8 +7,13 @@
 
 
 __version__ = "0.0.1"
-__all__ = ["OdooConfig", "DbConfig", "SmtpConfig"]
-
+# fmt: off
+__all__ = [
+    "OdooConfigProd",    "DbConfigProd",    "SmtpConfigProd",  # noqa: E241
+    "OdooConfigStage",   "DbConfigStage",   "SmtpConfigStage",  # noqa: E241
+    "OdooConfigDevelop", "DbConfigDevelop", "SmtpConfigDevelop"  # noqa: E241
+]
+# fmt: on
 
 import json
 import logging
