@@ -9,6 +9,7 @@ __version__ = "0.0.1"
 __all__ = ["monkeypatch", "Patcher"]
 
 import logging
+import re
 from functools import partial, wraps
 
 from psycopg2.extensions import make_dsn
@@ -129,6 +130,20 @@ class Patcher:
             (
                 odoo.addons.mail.models.update.PublisherWarrantyContract
             ).update_notification = lambda: True
+
+    @monkeypatch
+    def _patch_odoo_http_db_filter(self):
+        import odoo
+
+        def db_filter(dbs, httprequest=None):
+            httprequest = httprequest or odoo.http.request.httprequest
+            host = re.escape(httprequest.environ.get("HTTP_HOST", "").split(":")[0])
+            version = re.escape(odoo.release.version)
+            pattern = rf"{host}-{version}"
+            if self.OdooConfig.list_db:
+                pattern = rf".*-{version}"
+            dbs = [i for i in dbs if re.match(pattern, i)]
+            return dbs
 
     @monkeypatch
     def _patch_odoo_config(self):

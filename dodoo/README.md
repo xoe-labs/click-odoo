@@ -7,6 +7,7 @@
 - `KF 1:` it hot-reloads config for DB, SMTP and the admin password.
 - `KF 2:` it supports libpg dsn. (ej. for db server multiplexing)
 - `KF 3:` set max connection per database.
+- `KF 4:` dbfilter on odoo version and client project version.
 - `KF := Killer Feature`
 
 **It provides:**

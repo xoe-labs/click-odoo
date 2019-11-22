@@ -23,6 +23,7 @@ __all__ = [
 import logging
 import threading
 import os
+import sys
 
 import click
 from click_plugins import with_plugins
@@ -40,6 +41,7 @@ try:
 except ImportError:
     jsonlogger = None
 
+assert sys.version_info >= (3, 7), "doDoo requires Python >= 3.7 to run."
 
 _log = logging.getLogger(__name__)
 
@@ -61,29 +63,48 @@ if jsonlogger:
 
 @with_plugins(iter_entry_points("core_package.cli_plugins"))
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.option("-f", "--framework")
-@click.option("-o", "--odoo-config", "odoo_configs", multiple=True)
-@click.option("-d", "--db-config", "db_configs", multiple=True)
-@click.option("-s", "--stmp-config", "smtp_configs", multiple=True)
+@click.option(
+    "-f",
+    "--framework",
+    type=click.Path(exists=True, file_okay=False, resolve_path=True),
+)
+@click.option(
+    "-c",
+    "--confd",
+    "config_dir",
+    type=click.Path(exists=True, file_okay=False, resolve_path=True),
+)
 @click.option("-h", "--call-home", "call_home", is_flag=True)
+@click.option("-d", "--dev", "run_mode", flag_value="dev")
+@click.option("-s", "--stage", "run_mode", flag_value="stage")
+@click.option("-p", "--prod", "run_mode", flag_value="prod", default=True)
 @click.option("-v", "--verbose", "log_level", multiple=True, is_flag=True, count=True)
+@click.argument("codeversion", type=click.File("r"), env="GIT_TAG_FILE")
 @click.version_option(version=None)
-def main(
-    framework, odoo_configs, db_configs, smtp_configs, call_home, log_level
-):  # noqa: E402
+def main(framework, config_dir, call_home, run_mode, log_level, codeversion):
     """Provides the dodoo common cli entrypoint and sets up the dodoo python
     environment to work, loads the config and sets up logging."""
 
     logging.setLevel(logging.WARNING - max(log_level, 2) * 10)
     logging.captureWarnings(True)
+    if run_mode == "dev":
+        OdooConfig = config.OdooConfigDevelop(config_dir)
+        DbConfig = config.DbConfigDevelop(config_dir)
+        SmtpConfig = config.SmtpConfigDevelop(config_dir)
+    elif run_mode == "stage":
+        OdooConfig = config.OdooConfigStage(config_dir)
+        DbConfig = config.DbConfigStage(config_dir)
+        SmtpConfig = config.SmtpConfigStage(config_dir)
+    elif run_mode == "prod":
+        OdooConfig = config.OdooConfigProd(config_dir)
+        DbConfig = config.DbConfigProd(config_dir)
+        SmtpConfig = config.SmtpConfigProd(config_dir)
+    else:
+        raise Exception()  # Never hit
 
-    OdooConfig = config.OdooConfig(odoo_configs)
-    DbConfig = config.DbConfig(db_configs)
-    SmtpConfig = config.SmtpConfig(smtp_configs)
-
-    # Load odoo module from path
+    # Load odoo module from specified framework path
     if framework:
-        pass
+        sys.path.insert(0, framework)
 
     # Set up the dodoo namespace (having desired odoo in sys)
     global odoo, app, registry, modules
@@ -92,14 +113,23 @@ def main(
     from . import registry
     from . import modules
 
+    odoo.release.version[5] = codeversion.read().rstrip()
+
     # Init as per odoo flavours
     odoo.tools.translate.resetlocale()
     odoo.modules.module.initialize_sys_path()
 
-    logformat = (
-        "%(asctime)s %(pid)s %(levelname)s %(dbname)s "
-        "%(name)s: %(message)s %(perf_info)s"
-    )
+    if run_mode == "dev":
+        logformat = (
+            "%(levelname)s %(dbname)s "
+            "%(name)s: %(message)s %(perf_info)s\n"
+            "file://%(pathname)s:%(lineno)d"
+        )
+    else:
+        logformat = (
+            "%(asctime)s %(levelname)s %(dbname)s "
+            "%(name)s: %(message)s %(perf_info)s"
+        )
     handler = logging.StreamHandler()
     if handler.isatty():
         formatter = odoo.netscv.ColoredFormatter(logformat)
@@ -117,12 +147,7 @@ def main(
     # a-performance-analysis-of-python-wsgi-servers-part-2/
     logging.getLogger("werkzeug").addFilter(perf_filter)
 
-    for element in OdooConfig.log_handler:
-        loggername, level = element.split(":")
-        level = getattr(logging, level, logging.INFO)
-        logger = logging.getLogger(loggername)
-        logger.setLevel(level)
-        _log.debug('logger level set: "%s"', element)
+    OdooConfig.apply_log_handler_to(logging)
 
     if call_home:
         Patcher.features.update(call_home=True)

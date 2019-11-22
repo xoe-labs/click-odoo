@@ -23,7 +23,11 @@ setup(
     packages=["dodoo"],
     include_package_data=True,
     setup_requires=["setuptools_scm"],
-    install_requires=["click", "click-plugins"],
+    install_requires=[
+        "click",
+        "click-plugins",
+        "ipdb",  # For (mostly) decent !lightweight! debugging
+    ],
     license="LGPLv3+",
     author="XOE Corp. SAS",
     author_email="info@xoe.solutions",
