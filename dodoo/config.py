@@ -22,6 +22,8 @@ from psycopg2.extensions import make_dsn, parse_dsn
 
 from dataclasses import dataclass, field
 
+from .modules import find_addons_path
+
 _log = logging.getLogger(__name__)
 
 DEFAULT_ODOOADMINPASSWORD_FILE: str = "/run/secrets/adminpasswd"
@@ -231,6 +233,9 @@ class OdooConfig(_Config):
             logger = logging.getLogger(loggername)
             logger.setLevel(level)
             _log.debug('logger level set: "%s"', element)
+
+    def resolve_addons_paths(self):
+        return find_addons_path(self.addons_dir)
 
     @staticmethod
     def _cast(cfg: dict):

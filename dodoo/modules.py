@@ -3,10 +3,26 @@
 
 import ast
 import os
+from pathlib import Path
+
+from odoo.modules.module import MANIFEST_NAMES
 
 from dodoo import odoo
 
-MANIFEST_NAMES = ("__manifest__.py", "__openerp__.py")
+
+def find_addons_path(addons_dir: os.PathLike):
+    """Recursively find all addons path within a directory"""
+    paths = set()
+    for root, dirnames, files in os.walk(addons_dir):
+        if Path(root).parent in paths:
+            dirnames.clear()
+            continue
+        if "__init__.py" in files:
+            dirnames.clear()
+        if not any(M in files for M in MANIFEST_NAMES):
+            continue
+        paths |= {Path(root).parent}
+    return sorted(list(paths))  # We promise alphabetical order
 
 
 class NoManifestFound(Exception):

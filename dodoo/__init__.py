@@ -117,7 +117,6 @@ def main(framework, config_dir, call_home, run_mode, log_level, codeversion):
 
     # Init as per odoo flavours
     odoo.tools.translate.resetlocale()
-    odoo.modules.module.initialize_sys_path()
 
     if run_mode == "dev":
         logformat = (
@@ -154,6 +153,7 @@ def main(framework, config_dir, call_home, run_mode, log_level, codeversion):
     # TODO: Provide a mechanism for dodoo modules to trigger custom features
     # eg.: dodoo-debrand - check what click says about extending command opt
     Patcher(OdooConfig, DbConfig, SmtpConfig).patch()
+    odoo.modules.module.initialize_sys_path()
 
 
 if __name__ == "__main__":  # pragma: no cover

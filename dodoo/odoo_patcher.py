@@ -149,6 +149,13 @@ class Patcher:
     def _patch_odoo_config(self):
         import odoo
 
-        odoo.conf.addons_patchs = []
-        odoo.conf.server_wide_modules = []
-        pass
+        odoo.tools.config._parse_config()  # Generate default
+        for k, v in self.OdooConfig.__dict__:
+            odoo.tools.config[k] = v
+        odoo.tools.config["list_db"] = self.OdooConfig.list_db
+        addons_paths = self.OdooConfig.resolve_addons_paths()
+        odoo.tools.config["addons_path"] = ",".join(
+            addons_paths, odoo.tools.config["addons_path"].split(",")
+        )
+        odoo.conf.addons_paths = addons_paths + odoo.conf.addons_paths
+        odoo.conf.server_wide_modules = list(self.OdooConfig.server_wide_modules)
