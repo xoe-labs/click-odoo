@@ -46,6 +46,9 @@ dodoo <subcommand>
                   order as specified. A sane default config for dev is shipped.
     --call-home   Enable Odoo's calling home un-features. (Running code under
                   Odoo's Enterprise License contracts require you to do so.)
+    --dev         Run in development mode.
+    --stage       Run in staging mode.
+    --prod        Default: Run in production mode.
     --verbose     Specify the log level from: info, debug. Without: warn.
 ```
 
