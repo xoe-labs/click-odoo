@@ -4,6 +4,11 @@
 
 `dodoo` is a CLI or library entrypoint to the dodoo server middleware for Odoo.
 
+- `KF 1:` it hot-reloads config for DB, SMTP and the admin password.
+- `KF 2:` it supports libpg dsn. (ej. for db server multiplexing)
+- `KF 3:` set max connection per database.
+- `KF := Killer Feature`
+
 **It provides:**
 
 - A handle to the Odoo namespace `dodoo.odoo`
@@ -31,9 +36,16 @@
 
 ```
 dodoo <subcommand>
-    --framework  Path to Odoo framework, if odoo is not in python path.
-    --config     Yaml or Json config. Can be specified multiple times, merged in
-                 order as specified. A sane default config for dev is shipped.
+    --framework   Path to Odoo framework, if odoo is not in python path.
+    --odoo-config Json config. Can be specified multiple times, merged in
+                  order as specified. A sane default config for dev is shipped.
+    --db-config   Json config. Can be specified multiple times, merged in
+                  order as specified. A sane default config for dev is shipped.
+    --smtp-config Json config. Can be specified multiple times, merged in
+                  order as specified. A sane default config for dev is shipped.
+    --call-home   Enable Odoo's calling home un-features. (Running code under
+                  Odoo's Enterprise License contracts require you to do so.)
+    --verbose     Specify the log level from: info, debug. Without: warn.
 ```
 
 
