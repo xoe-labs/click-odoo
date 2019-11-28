@@ -25,6 +25,17 @@ def find_addons_path(addons_dir: os.PathLike):
     return sorted(list(paths))  # We promise alphabetical order
 
 
+def find_scoped_addons_path(addons_dir: os.PathLike):
+    """Find all addons path within a directory, the first level
+    sub-directories beeing expected to be DBUUIDs."""
+    paths_map = {}
+    for dbuuid in addons_dir.iterdir():
+        if not dbuuid.is_dir():
+            continue
+        paths_map[dbuuid] = find_addons_path(dbuuid)
+    return paths_map
+
+
 class NoManifestFound(Exception):
     pass
 

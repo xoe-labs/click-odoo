@@ -27,7 +27,7 @@ from psycopg2.extensions import make_dsn, parse_dsn
 
 from dataclasses import dataclass, field
 
-from .modules import find_addons_path
+from .modules import find_addons_path, find_scoped_addons_path
 
 _log = logging.getLogger(__name__)
 
@@ -218,6 +218,7 @@ class OdooConfig(_Config):
     data_dir:          os.PathLike = Path("/mnt/odoo/persist")  # noqa: E241
     backup_dir:        os.PathLike = Path("/mnt/odoo/backup")  # noqa: E241
     addons_dir:        os.PathLike = Path("/mnt/odoo/addons")   # noqa: E241
+    scoped_addons_dir: os.PathLike = Path("/mnt/odoo/scoped_addons")   # noqa: E241
     geoip_database:    os.PathLike = Path("/usr/share/GeoIP/GeoLite2-City.mmdb")  # noqa: E241
     unaccent:                 bool = True  # noqa: E241
     server_wide_modules: frozenset = frozenset(["web", "base"])  # noqa: E241
@@ -242,6 +243,9 @@ class OdooConfig(_Config):
     def resolve_addons_paths(self):
         return find_addons_path(self.addons_dir)
 
+    def resolve_scoped_addons_dir(self):
+        return find_scoped_addons_path(self.scoped_addons_dir)
+
     @staticmethod
     def _cast(cfg: dict):
         """Cast values from dictionary to this object's expected type"""
@@ -253,6 +257,8 @@ class OdooConfig(_Config):
             cfg["backup_dir"] = Path(cfg.get("backup_dir"))
         if cfg.get("addons_dir"):
             cfg["addons_dir"] = Path(cfg.get("addons_dir"))
+        if cfg.get("scoped_addons_dir"):
+            cfg["scoped_addons_dir"] = Path(cfg.get("scoped_addons_dir"))
         if cfg.get("geoip_database"):
             cfg["geoip_database"] = Path(cfg.get("geoip_database"))
 
@@ -277,10 +283,12 @@ class OdooConfig(_Config):
         _exists_and_absolute(self.data_dir)
         _exists_and_absolute(self.backup_dir)
         _exists_and_absolute(self.addons_dir)
+        _exists_and_absolute(self.scoped_addons_dir)
         _exists_and_absolute(self.geoip_database)
         _is_dir(self.data_dir)
         _is_dir(self.backup_dir)
         _is_dir(self.addons_dir)
+        _is_dir(self.scoped_addons_dir)
         _is_file(self.geoip_database)
 
 

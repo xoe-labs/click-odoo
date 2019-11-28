@@ -8,6 +8,7 @@
 - `KF 2:` it supports libpg dsn. (ej. for db server multiplexing)
 - `KF 3:` set max connection per database.
 - `KF 4:` dbfilter on odoo version and client project version.
+- `KF 5:` mount registry (database) specific addon folders.
 - `KF := Killer Feature`
 
 **It provides:**
