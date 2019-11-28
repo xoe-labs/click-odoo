@@ -49,6 +49,7 @@ class Patcher:
     the general environment is built."""
 
     features = {}
+    run_mode = None
 
     def __init__(self, odooconfig, dbconfig, smtpconfig):
         """Initializes the patcher and set's the feature flags"""
@@ -161,6 +162,8 @@ class Patcher:
                 pattern = rf".*-{version}"
             dbs = [i for i in dbs if re.match(pattern, i)]
             return dbs
+
+        odoo.http.db_filter = db_filter
 
     @monkeypatch
     def _patch_odoo_module_get_modules(self):

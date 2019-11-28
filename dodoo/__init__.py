@@ -148,6 +148,7 @@ def main(framework, config_dir, call_home, run_mode, log_level, codeversion):
 
     OdooConfig.apply_log_handler_to(logging)
 
+    Patcher.run_mode = run_mode
     if call_home:
         Patcher.features.update(call_home=True)
     # TODO: Provide a mechanism for dodoo modules to trigger custom features
