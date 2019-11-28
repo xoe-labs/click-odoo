@@ -132,6 +132,22 @@ class Patcher:
             ).update_notification = lambda: True
 
     @monkeypatch
+    def _patch_odoo_ir_modules_install_from_url(self):
+        """This essentially is a security patch as no rpc callable method
+        should be allowed to mess with / inject server file system state.
+        To enable this, you should write an explicit dodoo subcommand,
+        this feature flag is not exposed nowhere for purpose."""
+
+        # When I saw this first time, I was like: WTF?!?!?!
+        # Side effects are somewhat frightning on a shared instance getting
+        # into hands of knowledgeable people.
+
+        if not self.features.get("install_remote_modules_via_rpc"):
+            import odoo
+
+            odoo.base.ir_modules.install_from_urls = lambda: True
+
+    @monkeypatch
     def _patch_odoo_http_db_filter(self):
         import odoo
 
