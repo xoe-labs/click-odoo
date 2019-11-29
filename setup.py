@@ -45,5 +45,6 @@ setup(
     entry_points="""
         [console_scripts]
         dodoo=dodoo.cli:main
+        [dodoo.cli_plugins]
     """,
 )

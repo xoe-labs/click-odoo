@@ -61,7 +61,7 @@ if jsonlogger:
             return jsonlogger.JsonFormatter.format(self, record)
 
 
-@with_plugins(iter_entry_points("core_package.cli_plugins"))
+@with_plugins(iter_entry_points("dodoo.cli_plugins"))
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option(
     "-f",
