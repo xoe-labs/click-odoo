@@ -114,6 +114,7 @@ def main(framework, config_dir, call_home, run_mode, log_level, codeversion):
     from . import modules
 
     odoo.release.version[5] = codeversion.read().rstrip()
+    odoo.dodoo_run_mode = run_mode
 
     # Init as per odoo flavours
     odoo.tools.translate.resetlocale()

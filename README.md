@@ -39,6 +39,7 @@ $ dodoo --help
 <sub>Not all components are implemented or operational. Meanwhile, this aims to be a compelling set of tooling to be made available through `dodoo`.</sub>
 
 - `dodoo` - the Odoo Server middleware, done right *
+- [`dodoo run`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-run#readme) - run the suck-less odoo server
 - [`dodoo init`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-init#readme) - launch an Odoo database, eventually from a hashed db cache
 - [`dodoo copy`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-copy#readme) - copy an Odoo database and **augment** it
 - [`dodoo backup`](https://github.com/xoe-labs/dodoo/tree/master/dodoo-backup#readme) - backup a database incrementally to "X" (disk, s3, sshfs, ...)
