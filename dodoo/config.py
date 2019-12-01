@@ -1,12 +1,10 @@
-#!/usr/bin/env python3
 # =============================================================================
-# Created By  : David Arnold
-# Created Date: 2019-11-20T11:08-05:00
+# Created By : David Arnold
+# Part of    : xoe-labs/dodoo
 # =============================================================================
 """This module implements the dodoo.config api for Odoo server configuration"""
 
 
-__version__ = "0.0.1"
 # fmt: off
 __all__ = [
     "OdooConfigProd",    "DbConfigProd",    "SmtpConfigProd",  # noqa: E241
@@ -27,7 +25,8 @@ from psycopg2.extensions import make_dsn, parse_dsn
 
 from dataclasses import dataclass, field
 
-from .modules import find_addons_path, find_scoped_addons_path
+from . import RUNMODE
+from ..interfaces import odoo
 
 _log = logging.getLogger(__name__)
 
@@ -132,6 +131,29 @@ def _read_secret(env_var: str) -> str:
 # ==============
 
 
+def load_config(config_dir, run_mode):
+    class Config:
+        Odoo = None
+        Smtp = None
+        Db = None
+
+    if run_mode == RUNMODE.Develop:
+        Config.Odoo = OdooConfigDevelop(config_dir)
+        Config.Db = DbConfigDevelop(config_dir)
+        Config.Smtp = SmtpConfigDevelop(config_dir)
+    elif run_mode == RUNMODE.Staging:
+        Config.Odoo = OdooConfigStage(config_dir)
+        Config.Db = DbConfigStage(config_dir)
+        Config.Smtp = SmtpConfigStage(config_dir)
+    elif run_mode == RUNMODE.Production:
+        Config.Odoo = OdooConfigProd(config_dir)
+        Config.Db = DbConfigProd(config_dir)
+        Config.Smtp = SmtpConfigProd(config_dir)
+    else:
+        raise Exception()  # Never hit
+    return Config
+
+
 def _validate_confd(confd: os.PathLike) -> None:
     if not confd.exists():
         raise NoConfigDirError(f"{confd} does not exist.")
@@ -185,6 +207,11 @@ class _Config:
             _log.warning(f"Hot reload of {self.__name__} failed.")
             return False
 
+    def apply(self):
+        cfg = odoo.Config()
+        for k, v in self.__dict__:
+            cfg.config[k] = v
+
     @staticmethod
     def _cast(cfg: dict):
         return
@@ -209,6 +236,32 @@ class _Config:
 # ==============
 # Odoo Config
 # ==============
+
+
+def find_addons_path(addons_dir: os.PathLike):
+    """Recursively find all addons path within a directory"""
+    paths = set()
+    for root, dirnames, files in os.walk(addons_dir):
+        if Path(root).parent in paths:
+            dirnames.clear()
+            continue
+        if "__init__.py" in files:
+            dirnames.clear()
+        if not any(M in files for M in odoo.Modules().MANIFEST_NAMES):
+            continue
+        paths |= {Path(root).parent}
+    return sorted(list(paths))  # We promise alphabetical order
+
+
+def find_scoped_addons_path(addons_dir: os.PathLike):
+    """Find all addons path within a directory, the first level
+    sub-directories beeing expected to be DBUUIDs."""
+    paths_map = {}
+    for dbuuid in addons_dir.iterdir():
+        if not dbuuid.is_dir():
+            continue
+        paths_map[dbuuid] = find_addons_path(dbuuid)
+    return paths_map
 
 
 @dataclass(frozen=True)
@@ -239,6 +292,22 @@ class OdooConfig(_Config):
             logger = logging.getLogger(loggername)
             logger.setLevel(level)
             _log.debug('logger level set: "%s"', element)
+
+    def apply(self):
+        super().apply()
+        cfg = odoo.Config()
+        cfg.config["list_db"] = self.list_db
+        cfg.config["addons_path"] = ",".join(
+            self.scoped_addons_dir
+            + self.resolve_addons_paths()
+            + cfg.config["addons_path"].split(",")
+        )
+        # Fix loaded defaults
+        cfg.conf.addons_paths = cfg.config["addons_path"].split(",")
+        server_wide_modules = cfg.config["server_wide_modules"].split(",")
+        cfg.conf.server_wide_modules = [
+            m.strip() for m in server_wide_modules if m.strip()
+        ]
 
     def resolve_addons_paths(self):
         return find_addons_path(self.addons_dir)
