@@ -18,11 +18,13 @@ import sys
 from .config import load_config
 from .interfaces import odoo
 from .patchers.odoo import Patcher
+from .connections import create_custom_schema_layout
 
 try:
     from pythonjsonlogger import jsonlogger
 except ImportError:
     jsonlogger = None
+
 
 assert sys.version_info >= (3, 7), "doDoo requires Python >= 3.7 to run."
 
@@ -111,3 +113,9 @@ def main(framework, config_dir, call_home, run_mode, log_level, codeversion):
     # config.Db.apply() - completely patched for hotreload
     # config.Smtp.apply() - completely patched for hotreload
     odoo.Modules.initialize_sys_path()
+
+    # Create database schema layouts on all configured database (if not exists)
+    for dsn in config.Db.per_dbname_dsn.values() + config.Db.default_dsn:
+        create_custom_schema_layout(
+            dsn, [config.Db.odoo_schema, config.Db.dodoo_schema]
+        )

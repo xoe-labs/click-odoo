@@ -77,15 +77,20 @@ class Patcher(BasePatcher):
         # Already reloaded by _patch_odoo_db_connect
         # reloaded = self.DbConfig.reload()
         dsn = self.DbConfig.resolve_dsn(dbname)
-        return dbname, make_dsn(dsn, dbname=dbname)
+        return dbname, make_dsn(dsn, dbname=dbname, application_name="odoo")
 
     def db_connect(self, dbname):
         reloaded = self.DbConfig.reload()
         if reloaded:  # We should recreate all connections
             odoo.Database().close_all()
-        ConnectionPool = odoo.Patchable.db_connect(dbname)
-        ConnectionPool._maxconn = self.DbConfig.resolve_maxconn(dbname)
-        return ConnectionPool
+        Connection = odoo.Patchable.db_connect(dbname)
+        # Todo: find a way to enable per-database connections
+        # Connection._maxconn = self.DbConfig.resolve_maxconn(dbname)
+
+        # As connections are pooled, the performance penalty is negligible
+        with Connection.cursor() as cr:
+            cr.execute(f"SET search_path TO odoo")
+        return Connection
 
     @BasePatcher.unlessFeature("call_home")
     @staticmethod

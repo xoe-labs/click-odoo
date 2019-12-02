@@ -401,6 +401,8 @@ passfile = Path(os.environ.get("PGPASS_FILE", globals().get("DEFAULT_PGPASS_FILE
 @dataclass(frozen=True)
 class DbConfig(_Config):
     _default_dsn = f"user=odoo host=db port=5432 passfile={passfile}"
+    odoo_schema = "odoo"
+    dodoo_schema = "dodoo"
     # fmt: off
     default_maxconn:     int = 64  # noqa: E241
     default_dsn:         str = _default_dsn  # noqa: E241
