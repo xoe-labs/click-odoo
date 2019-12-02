@@ -35,8 +35,8 @@ CONTEXT_SETTINGS = dict(auto_envvar_prefix="DODOO")
 @click.option("-v", "--verbose", "log_level", multiple=True, is_flag=True, count=True)
 @click.argument("codeversion", type=click.File("r"), env="GIT_TAG_FILE")
 @click.version_option(version=__version__)
-def main(*args):
-    _main(*args)
+def main(*args, **kwargs):
+    _main(*args, **kwargs)
 
 
 main.__doc__ = _main.__doc__

@@ -12,18 +12,62 @@ from importlib import import_module
 from ..patchers import PatchableProperty as PProp
 
 
+class Exceptions:
+    @property
+    def AccessDenied(self):
+        return import_module("odoo.exceptions.AccessDenied")
+
+
+class Authentication:
+    @staticmethod
+    def authenticate(database, login, password, context=None):
+        if not context:
+            context = {}
+        return import_module("odoo.service.common.exp_authenticate")(
+            database, login, password, context
+        )
+
+
+class WSGI:
+    @property
+    def app(self):
+        return import_module("odoo.service.wsgi_server.application_unproxied")
+
+
 class Registry:
-    pass
+    def __new__(cls, dbname):
+        return import_module("odoo.modules.registry.Regsitry")(dbname)
+
+    @staticmethod
+    def items():
+        return import_module("odoo.modules.registry.Regsitry.registries").items()
 
 
 class Environment:
-    pass
+    def __new__(cls, cr, uid, context=None):
+        if not context:
+            context = {}
+        manage_environments = import_module("odoo.api.Environment.manage")
+        with manage_environments():
+            yield import_module("odoo.api.Environment")(cr, uid, context)
+
+
+class Cron:
+    @staticmethod
+    def acquire(dbname):
+        return import_module("odoo.addons.base.models.ir_cron.ir_cron._acquire_job")(
+            dbname
+        )
 
 
 class Tools:
     @staticmethod
     def resetlocale():
         import_module("odoo.tools.translate.resetlocale")()
+
+    @staticmethod
+    def lazy(obj):
+        import_module("odoo.tools.func.lazy")(obj)
 
 
 class Modules:
@@ -36,8 +80,29 @@ class Modules:
         return import_module("odoo.modules.module.MANIFEST_NAMES")
 
     @property
+    def loaded(self):
+        return import_module("odoo.modules.module.MANIFEST_NAMES")
+
+    @property
+    def load(self, module):
+        return import_module("odoo.modules.module.load_openerp_module")(module)
+
+    @property
     def deduce_module_name_from(self, path):
         return import_module("odoo.modules.module.get_module_root")(path)
+
+    @property
+    def deduce_module_and_relpath_from(self, path):
+        res = import_module("odoo.modules.module.get_resource_from_path")(path)
+        if not res:  # Fixing the return signature
+            return None, None
+        return res
+
+    @property
+    def parse_manifest_from(self, module):
+        return import_module(
+            "odoo.modules.module.load_information_from_description_file"
+        )(module)
 
 
 class Database:
