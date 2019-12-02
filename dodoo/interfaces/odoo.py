@@ -35,6 +35,10 @@ class Modules:
     def MANIFEST_NAMES(self):
         return import_module("odoo.modules.module.MANIFEST_NAMES")
 
+    @property
+    def deduce_module_name_from(self, path):
+        return import_module("odoo.modules.module.get_module_root")(path)
+
 
 class Database:
     @staticmethod
