@@ -1,6 +1,20 @@
-# Changes
+# Changelog
+All notable changes to this project will be documented in this file.
 
-## 2.0.0 (2019-01-22)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+**A major structural refactoring to target 2.0.0 is under way.**
+
+## [Unreleased]
+  - major project restructuring towards modulatiry, modern tooling & a
+    redifnition of what dodoo shall be.
+  - moving click-odoo heritage to dodoo shell and otherwise conceive dodoo
+    as a foundation for suck-less server middleware of all kinds
+  - once finished refactoring, synchronized versions of all stock packages will
+    be released as version 2.0.0
+
+## 2.0.0rc8 (2019-01-22)
 
   - refactor to click native facilities, where possible
   - replace `@env_options()` named parameters with `context_settings` on
@@ -76,3 +90,5 @@
     alias for `import odoo` (\>9) or `import openerp as odoo` (\<=9)
   - add a `with_rollback` option to the `env_options` decorator, to
     control the presence of the rollback optio
+
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.0.pre8...HEAD

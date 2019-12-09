@@ -57,7 +57,7 @@ $ dodoo --help
 - If you want to discuss with a person, join https://matrix.to/#/#dodoo:matrix.org.
 - Be _somewhat_ familiar with:
     - [`odoo`](https://github.com/odoo/odoo)
-    - [`tox`](https://tox.readthedocs.io/en/latest/)
+    - [`poetry`](https://poetry.eustace.io)
     - [`pre-commit`](https://pre-commit.com/)
 - Report issues at [DockeryOdoo](https://github.com/xoe-labs/dockery-odoo/issues>)
 
