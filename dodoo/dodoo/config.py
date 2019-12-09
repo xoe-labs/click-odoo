@@ -24,9 +24,8 @@ from typing import List
 from psycopg2.extensions import make_dsn, parse_dsn
 
 from dataclasses import dataclass, field
-
-from . import RUNMODE
-from ..interfaces import odoo
+from dodoo import RUNMODE
+from dodoo.interfaces import odoo
 
 _log = logging.getLogger(__name__)
 
@@ -174,7 +173,6 @@ def _validate_confd(confd: os.PathLike) -> None:
 
 
 class _Config:
-    @classmethod
     def __new__(cls, confd: os.PathLike):
         _validate_confd(confd)
         cls.confd = confd

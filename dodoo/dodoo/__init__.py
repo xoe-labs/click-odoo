@@ -6,19 +6,13 @@
 
 
 __version__ = "0.0.1"
-__all__ = ["RUNMODE", "main"]
+__all__ = ["RUNMODE", "main", "framework"]
 
 import logging
 import threading
 import os
 import enum
 import sys
-
-
-from .config import load_config
-from .interfaces import odoo
-from .patchers.odoo import Patcher
-from .connections import create_custom_schema_layout
 
 try:
     from pythonjsonlogger import jsonlogger
@@ -50,25 +44,41 @@ if jsonlogger:
             return jsonlogger.JsonFormatter.format(self, record)
 
 
-def main(framework, config_dir, call_home, run_mode, log_level, codeversion):
-    """Provides the dodoo common cli entrypoint and sets up the dodoo python
-    environment to work, loads the config and sets up logging."""
+# Those might import RUNMODE
+from .config import load_config  # noqa
+from .interfaces import odoo  # noqa
+from .patchers.odoo import Patcher  # noqa
+from .connections import create_custom_schema_layout  # noqa
 
-    logging.setLevel(logging.WARNING - max(log_level, 2) * 10)
+_framework = None
+
+
+@property
+def framework():
+    return _framework
+
+
+def main(framework_dir, config_dir, call_home, run_mode, log_level, codeversion_file):
+    """Provide the common cli entrypoint, initialize the dodoo python
+    environment, load configuration and set up logging.
+
+    Then hand off to a subcommand."""
+    rootlogger = logging.getLogger()
+    rootlogger.setLevel(logging.WARNING - max(log_level, 2) * 10)
     logging.captureWarnings(True)
     config = load_config(config_dir, run_mode)
 
     # Load odoo module from specified framework path
-    if framework:
-        sys.path.insert(0, framework)
+    if framework_dir:
+        sys.path.insert(0, framework_dir)
 
     # Hold a reference to the global odoo namespace so it's not
     # garbage collected after beeing patched
-    global framework
-    import odoo as framework
+    global _framework
+    import odoo as _framework
 
-    framework.dodoo_run_mode = run_mode
-    framework.dodoo_project_version = codeversion.read().rstrip()
+    _framework.dodoo_run_mode = run_mode
+    _framework.dodoo_project_version = codeversion_file.read().rstrip()
 
     odoo.Tools.resetlocale()
 

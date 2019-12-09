@@ -12,7 +12,7 @@ import os
 
 import pygit2
 
-from .interfaces import odoo
+from dodoo.interfaces import odoo
 
 _log = logging.getLogger(__name__)
 
