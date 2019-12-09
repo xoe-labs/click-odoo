@@ -14,18 +14,6 @@ import dodoo.interfaces.odoo as odoo
 
 _log = logging.getLogger(__name__)
 
-app = None
-server = None
-# ===================
-# Compatibility Shims
-# ===================
-
-
-# ===================
-# Mod. Implementation
-# ===================
-
-
 # ===================
 # Implementation
 # ===================

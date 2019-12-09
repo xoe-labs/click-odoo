@@ -13,46 +13,29 @@
 
 **It provides:**
 
-- A handle to the Odoo namespace `dodoo.odoo`
-- A handle to the Odoo wsgi app `dodoo.app`
-- A context manager to an initialized registry `dodoo.registry(db, **kwargs)`
-    - A custom context manager, cleaning up database connections
-- A handle to a database connection on the default schema `dodoo.oconn(db)` ("odoo connection")
-- A handle to a database connection on the dodoo schema `dodoo.dconn(db)` ("dodoo connection")
-- doDoo specific namespaces:
-    - `dodoo.config` - a slim doDoo api to the Odoo config
-    - `dodoo.modules` - simplified doDoo api to interact with Odoo modules
-         - `dodoo.modules.expand` - include all dependencies + autoinstall modules
-         - `dodoo.modules.path` - get the file system path of a addon
-         - `dodoo.modules.reflect(db)` - reflect module state in database
-    - `dodoo.git` - doDoo api to interact with (remote) git version control
-    - `dodoo.metrics` - doDoo metrics api
+- A clean and well-defined interface to the Odoo namespace as `dodoo.odoo`
+  package (`import dodoo.interfaces.odoo as odoo`).
+- A clean and well-defined monkey patcher class to patch Odoo under the packages
+  `dodoo.patchers` and `dodoo.patchers.odoo`. (`from dodoo.patchers import
+  BasePatcher`)
+- A clean and well-defined handle to the database and their schemata as
+  `dodoo.connections` package. (`from dodoo.connections import OdooCursor,
+  DodooCursor, PyblicCursor, SchemaCursor`).
+- A clean and slick handle to the current repository puls Odoo specific helper
+  mthods under the `dodoo.git` package (`from dodoo.git import Repo`)
 
 **It does _not_ provide:**
 
-- Command line switches for odoo server (✨ 🍰 ✨) -- if you have an appealing use case, submit a subcommand instead.
-- Resource scheduling options (✨ 🍰 ✨) -- turn to your deployment framework of choice.
-- Monolithic things (✨ 🍰 ✨) -- go back to jail and don't draw $10 from the bank.
+- Command line switches for odoo server (✨ 🍰 ✨) -- if you have an appealing
+  use case, submit a subcommand instead.
+- Resource scheduling options (✨ 🍰 ✨) -- turn to your deployment framework
+  of choice.
+- Monolithic things (✨ 🍰 ✨) -- go back to jail and don't draw $10 from the
+  bank.
 
 ## Spec
 
-```
-dodoo <subcommand>
-    --framework   Path to Odoo framework, if odoo is not in python path.
-    --odoo-config Json config. Can be specified multiple times, merged in
-                  order as specified. A sane default config for dev is shipped.
-    --db-config   Json config. Can be specified multiple times, merged in
-                  order as specified. A sane default config for dev is shipped.
-    --smtp-config Json config. Can be specified multiple times, merged in
-                  order as specified. A sane default config for dev is shipped.
-    --call-home   Enable Odoo's calling home un-features. (Running code under
-                  Odoo's Enterprise License contracts require you to do so.)
-    --dev         Run in development mode.
-    --stage       Run in staging mode.
-    --prod        Default: Run in production mode.
-    --verbose     Specify the log level from: info, debug. Without: warn.
-```
-
+see manpage
 
 <div align="center">
     <div>
