@@ -12,7 +12,7 @@ repos:
   - id: check-yaml
   - id: debug-statements
   - id: flake8
-    additional_dependencies: ["flake8-bugbear == 18.8.0"]
+    additional_dependencies: ["flake8-bugbear == 18.8.0", "flake8-click"]
     language_version: python3.7
 - repo: https://github.com/asottile/pyupgrade
   rev: v1.6.1
