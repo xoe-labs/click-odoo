@@ -106,7 +106,7 @@ class Patcher(odoo.Patchable, BasePatcher):
     def db_filter(self, dbs, httprequest=None):
         httprequest = httprequest or odoo.http.request.httprequest
         host = re.escape(httprequest.environ.get("HTTP_HOST", "").split(":")[0])
-        project_version = re.escape(dodoo.framework.dodoo_project_version)
+        project_version = re.escape(dodoo.framework().dodoo_project_version)
         pattern = rf"{host}-{project_version}"
         if self.OdooConfig.list_db:
             pattern = rf".*-{project_version}"
