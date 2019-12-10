@@ -11,7 +11,7 @@ from typing import Mapping
 
 from psycopg2.extensions import make_dsn, parse_dsn
 
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 
 from . import BaseConfig
 from ._errors import NoSecretsInConfigError
@@ -25,6 +25,9 @@ passfile = Path(os.environ.get("PGPASS_FILE", globals().get("DEFAULT_PGPASS_FILE
 
 @dataclass(frozen=True)
 class DbConfig(BaseConfig):
+
+    validate: InitVar[bool] = True
+
     _default_dsn = f"user=odoo host=db port=5432 passfile={passfile}"
     odoo_schema = "odoo"
     dodoo_schema = "dodoo"
@@ -53,7 +56,7 @@ class DbConfig(BaseConfig):
             dsn_dict = parse_dsn(dsn)  # Validates here as (desireable) side effect
             if not dsn_dict.get("passfile"):
                 dsn_dict["passfile"] = passfile
-            return make_dsn(dsn_dict)
+            return make_dsn(**dsn_dict)
 
         if cfg.get("default_dsn"):
             cfg["default_dsn"] = _ensure_dsn_with_passfile(cfg.get("default_dsn"))

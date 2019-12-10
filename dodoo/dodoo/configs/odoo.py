@@ -11,7 +11,7 @@ import pathlib  # for monkey patches
 from pathlib import Path
 from typing import FrozenSet, List
 
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from dodoo.interfaces import odoo
 
 from . import BaseConfig, PathLike, read_secret
@@ -52,6 +52,9 @@ def find_scoped_addons_path(addons_dir: os.PathLike):
 
 @dataclass(frozen=True)
 class OdooConfig(BaseConfig):
+
+    validate: InitVar[bool] = True
+
     list_db = False  # Immutable
     # fmt: off
     data_dir:             PathLike = Path("/mnt/odoo/persist")  # noqa: E241

@@ -6,7 +6,7 @@
 
 import logging
 
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 
 from . import BaseConfig, read_secret
 
@@ -15,6 +15,9 @@ _log = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class SmtpConfig(BaseConfig):
+
+    validate: InitVar[bool] = True
+
     # fmt: off
     email_from:   bool = False  # noqa: E241
     server:       bool = False  # noqa: E241

@@ -4,7 +4,7 @@
 # =============================================================================
 """This package implements the dodoo.configs api for Odoo server configuration"""
 
-
+__version__ = "0.0.1"
 __all__ = ["load_config", "BaseConfig", "read_secret", "PathLike"]
 
 import json
@@ -51,10 +51,10 @@ def read_secret(env_var: str) -> str:
         raise NoSecretError(path)
     if not path.is_file():
         raise SecretNoFileError(path)
-    if stat.S_IMODE(path.lstat().st_mode) > 0o400:
+    if stat.S_IMODE(path.lstat().st_mode) > 0o500:
         oct_str = oct(stat.S_IMODE(path.lstat().st_mode))
         raise SecretOwnershipError(
-            f"{path} ownership is {oct_str}, max allowed is `0o400`"
+            f"{path} ownership is {oct_str}, max allowed is `0o500`"
         )
     return path.read_text().rstrip()
 
@@ -69,15 +69,16 @@ def _validate_confd(confd: os.PathLike) -> None:
         raise NoConfigDirError(f"{confd} does not exist.")
     if not confd.is_dir():
         raise ConfigDirNoDirError(f"{confd} is not a directory.")
-    if stat.S_IMODE(confd.lstat().st_mode) > 0o440:
+    if stat.S_IMODE(confd.lstat().st_mode) > 0o550:
         oct_str = oct(stat.S_IMODE(confd.lstat().st_mode))
         raise ConfigDirOwnershipError(
-            f"{confd} ownership is {oct_str}, max allowed is `0o440`"
+            f"{confd} ownership is {oct_str}, max allowed is `0o550`"
         )
     for child in confd.iterdir():
         if not child.is_file():
             _log.warning(f"Config dir '{confd}' only contains files, not '{child}'!")
-        if child.suffix != "*.json":
+            continue
+        if child.suffix != ".json":
             _log.warning(
                 f"Config dir '{confd}' only contains json files, not '{child.name}'!"
             )
@@ -131,12 +132,16 @@ class BaseConfig(DataClassDictMixin):
         cls.confd = confd
         # Dummy instanciation as mashumaro doesn't support defaulting
         # see: https://github.com/Fatal1ty/mashumaro/issues/14
-        default_instance = cls.__new__(cls)
+        default_instance = cls(validate=False)
         cfg = {}
         cfg = default_instance.to_dict()
         for child in cls.confd.iterdir():
             if child.name == cls._file_name:
-                cfg = json.load(child.read_text)
+                try:
+                    cfg.update(json.loads(child.read_text()))
+                except json.decoder.JSONDecodeError as e:
+                    _log.critical(f"File {child} does not contain vaild json.")
+                    raise e
                 break
         cls._cure(cfg)
         try:
@@ -144,7 +149,9 @@ class BaseConfig(DataClassDictMixin):
         except TypeError as e:
             raise InvalidOptionError(e.args[0])
 
-    def __post_init__(self, *args, **kwargs):
+    def __post_init__(self, validate):
+        if not validate:
+            return
         self._validate()
 
     def reload(self):
