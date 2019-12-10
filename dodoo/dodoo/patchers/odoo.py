@@ -10,7 +10,7 @@ import os
 import re
 from functools import partial
 
-from psycopg2.extensions import make_dsn
+from psycopg2.extensions import make_dsn, parse_dsn
 
 import dodoo
 from dodoo.interfaces import odoo
@@ -78,13 +78,15 @@ class Patcher(odoo.Patchable, BasePatcher):
         # Already reloaded by _patch_odoo_db_connect
         # reloaded = self.DbConfig.reload()
         dsn = self.DbConfig.resolve_dsn(dbname)
-        return dbname, make_dsn(dsn, dbname=dbname, application_name="odoo")
+        return dbname, parse_dsn(make_dsn(dsn, dbname=dbname, application_name="odoo"))
+
+    orig_db_connect = odoo.Patchable.db_connect
 
     def db_connect(self, dbname):
         reloaded = self.DbConfig.reload()
         if reloaded:  # We should recreate all connections
             odoo.Database().close_all()
-        Connection = odoo.Patchable.db_connect(dbname)
+        Connection = Patcher.orig_db_connect(dbname)
         # Todo: find a way to enable per-database connections
         # Connection._maxconn = self.DbConfig.resolve_maxconn(dbname)
 

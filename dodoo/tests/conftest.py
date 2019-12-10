@@ -1,8 +1,15 @@
 import json
 import os
+import sys
 from pathlib import Path
 
 import pytest
+
+
+@pytest.fixture(autouse=True, scope="package")
+def clear_odoo_from_sys() -> None:
+    if sys.modules.get("odoo"):
+        del (sys.modules["odoo"])
 
 
 @pytest.fixture(autouse=True, scope="package")

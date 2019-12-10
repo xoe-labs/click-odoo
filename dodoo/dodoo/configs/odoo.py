@@ -98,6 +98,11 @@ class OdooConfig(BaseConfig):
         )
         # Fix frozenset config value
         cfg.config["server_wide_modules"] = ",".join(cfg.config["server_wide_modules"])
+        cfg.config["log_handler"] = ",".join(cfg.config["log_handler"])
+        # Fix Path objects
+        cfg.config["data_dir"] = str(cfg.config["data_dir"])
+        cfg.config["backup_dir"] = str(cfg.config["backup_dir"])
+        cfg.config["geoip_database"] = str(cfg.config["geoip_database"])
         # Fix loaded defaults
         cfg.conf.addons_paths = cfg.config["addons_path"].split(",")
         server_wide_modules = cfg.config["server_wide_modules"].split(",")

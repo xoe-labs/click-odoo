@@ -10,6 +10,7 @@ from dodoo.configs._errors import (
     NoConfigDirError,
     NoPathError,
 )
+from dodoo.interfaces import odoo
 
 
 class TestConfig:
@@ -57,4 +58,5 @@ class TestConfig:
         caplog.set_level(logging.WARNING)
         config = load_config(confd, RUNMODE.Production)
         config.Odoo.apply()
+        odoo.Config().defaults()
         assert len(caplog.records) == 0
