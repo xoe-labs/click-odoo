@@ -99,12 +99,23 @@ class BasePatcher:
 class PatchableProperty(object):
     def __init__(self, obj_path):
         self.obj_path = obj_path
-        self.parent = obj_path.rpartition(".")[0]
-        self.name = obj_path.rpartition(".")[2]
+        self.mod_path = obj_path.rpartition(":")[0]
+        self.obj = obj_path.rpartition(":")[2]
 
     def __get__(self, obj, klass=None):
-        return importlib.import_module(self.obj_path)
+        module = importlib.import_module(self.mod_path)
+        obj = self.obj.rpartition(".")[2]
+        base = self.obj.rpartition(".")[0]
+        if base:
+            return getattr(getattr(module, base), obj)
+        return getattr(module, obj)
 
     def __set__(self, obj, value):
-        parent = importlib.import_module(self.parent)
-        setattr(parent, self.name, value)
+        module = importlib.import_module(self.mod_path)
+        obj = self.obj.rpartition(".")[2]
+        base = self.obj.rpartition(".")[0]
+        if base:
+            base = getattr(module, base)
+            setattr(base, obj, value)
+        else:
+            setattr(module, obj, value)

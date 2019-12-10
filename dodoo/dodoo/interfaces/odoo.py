@@ -13,9 +13,12 @@ from ..patchers import PatchableProperty as PProp
 
 
 class Exceptions:
+    def __init__(self):
+        self._r = import_module("odoo.exceptions")
+
     @property
     def AccessDenied(self):
-        return import_module("odoo.exceptions.AccessDenied")
+        return self._r.AccessDenied
 
 
 class Authentication:
@@ -28,32 +31,36 @@ class Authentication:
 
 
 class Logging:
+    def __init__(self):
+        self._r = import_module("odoo.netsvc")
+
     @property
     def ColoredPerfFilter(self):
-        netsvc = import_module("odoo.netsvc")
-        return netsvc.ColoredPerfFilter
+        return self._r.ColoredPerfFilter
 
     @property
     def PerfFilter(self):
-        netsvc = import_module("odoo.netsvc")
-        return netsvc.PerfFilter
+        return self._r.PerfFilter
 
 
 class WSGI:
+    def __init__(self):
+        self._r = import_module("odoo.service.wsgi_server")
+
     @property
     def app(self):
-        return import_module("odoo.service.wsgi_server.application_unproxied")
+        return self._r.application_unproxied
 
 
 class Registry:
     def __new__(cls, dbname):
         registry = import_module("odoo.modules.registry")
-        return registry.Regsitry(dbname)
+        return registry.Registry(dbname)
 
     @staticmethod
     def items():
         registry = import_module("odoo.modules.registry")
-        return registry.Regsitry.registries.items()
+        return registry.Registry.registries.items()
 
 
 class Environment:
@@ -66,69 +73,62 @@ class Environment:
 
 
 class Cron:
-    @staticmethod
-    def acquire(dbname):
-        ir_cron = import_module("odoo.addons.base.models.ir_cron")
-        return ir_cron.ir_cron._acquire_job(dbname)
+    def __init__(self):
+        self._r = import_module("odoo.addons.base.models.ir_cron")
+
+    def acquire(self, dbname):
+        return self._r.ir_cron._acquire_job(dbname)
 
 
 class Tools:
-    @staticmethod
-    def resetlocale():
-        tools = import_module("odoo.tools")
-        tools.resetlocale()
+    def __init__(self):
+        self._t = import_module("odoo.tools")
+        self._f = import_module("odoo.tools.func")
 
-    @staticmethod
-    def lazy(obj):
-        func = import_module("odoo.tools.func")
-        func.lazy(obj)
+    def resetlocale(self):
+        self._t.resetlocale()
+
+    def lazy(self, obj):
+        return self._f.lazy(obj)
 
 
 class Modules:
-    @staticmethod
-    def initialize_sys_path():
-        module = import_module("odoo.modules.module")
-        module.initialize_sys_path()
+    def __init__(self):
+        self._r = import_module("odoo.modules.module")
+
+    def initialize_sys_path(self):
+        self._r.initialize_sys_path()
 
     @property
     def MANIFEST_NAMES(self):
-        module = import_module("odoo.modules.module")
-        return module.MANIFEST_NAMES
+        return self._r.MANIFEST_NAMES
 
     @property
     def loaded(self):
-        module = import_module("odoo.modules.module")
-        return module.loaded
+        return self._r.loaded
 
-    @property
     def load(self, module):
-        module = import_module("odoo.modules.module")
-        return module.load_openerp_module(module)
+        return self._r.load_openerp_module(module)
 
-    @property
     def deduce_module_name_from(self, path):
-        module = import_module("odoo.modules.module")
-        return module.get_module_root(path)
+        return self._r.get_module_root(path)
 
-    @property
     def deduce_module_and_relpath_from(self, path):
-        module = import_module("odoo.modules.module")
-        res = module.get_resource_from_path(path)
+        res = self._r.get_resource_from_path(path)
         if not res:  # Fixing the return signature
             return None, None
         return res
 
-    @property
     def parse_manifest_from(self, module):
-        module = import_module("odoo.modules.module")
-        return module.load_information_from_description_file(module)
+        return self._r.load_information_from_description_file(module)
 
 
 class Database:
-    @staticmethod
-    def close_all():
-        sql_db = import_module("odoo.sql_db")
-        sql_db.close_all()
+    def __init__(self):
+        self._r = import_module("odoo.sql_db")
+
+    def close_all(self):
+        self._r.close_all()
 
 
 class Config:
@@ -169,36 +169,40 @@ class Patchable:
     # #############################
 
     # odoo.addons.base
-    install_from_urls = PProp("odoo.addons.base.ir_modules.install_from_urls")
+    install_from_urls = PProp(
+        "odoo.addons.base.models.ir_module:Module.install_from_urls"
+    )
 
     # odoo.addons.mail
     update_notification = PProp(
         "odoo.addons.mail.models."
-        "update.PublisherWarrantyContract.update_notification"
+        "update:PublisherWarrantyContract.update_notification"
     )
 
     # odoo.http
-    db_filter = PProp("odoo.http.db_filter")
+    db_filter = PProp("odoo.http:db_filter")
 
     # odoo.modules.module
-    ad_paths = PProp("odoo.modules.module.ad_paths")
-    get_modules = PProp("odoo.modules.module.get_modules")
-    get_modules_with_version = PProp("odoo.modules.module.get_modules_with_version")
+    ad_paths = PProp("odoo.modules.module:ad_paths")
+    get_modules = PProp("odoo.modules.module:get_modules")
+    get_modules_with_version = PProp("odoo.modules.module:get_modules_with_version")
 
     # odoo.service.db
-    exp_drop = PProp("odoo.service.db.exp_drop")
-    exp_dump = PProp("odoo.service.db.exp_dump")
-    exp_restore = PProp("odoo.service.db.exp_restore")
+    exp_drop = PProp("odoo.service.db:exp_drop")
+    exp_dump = PProp("odoo.service.db:exp_dump")
+    exp_restore = PProp("odoo.service.db:exp_restore")
 
     # odoo.sql_db
-    connection_info_for = PProp("odoo.sql_db.connection_info_for")
-    db_connect = PProp("odoo.sql_db.db_connect")
+    connection_info_for = PProp("odoo.sql_db:connection_info_for")
+    db_connect = PProp("odoo.sql_db:db_connect")
 
     # odoo.tools.config
-    verify_admin_password = PProp("odoo.tools.config.verify_admin_password")
+    verify_admin_password = PProp(
+        "odoo.tools.config:configmanager.verify_admin_password"
+    )
 
     # odoo.tools.misc
-    exec_pg_command = PProp("odoo.tools.misc.exec_pg_command")
-    exec_pg_command_pipe = PProp("odoo.tools.misc.exec_pg_command_pipe")
-    exec_pg_environ = PProp("odoo.tools.misc.exec_pg_environ")
-    find_pg_tool = PProp("odoo.tools.misc.find_pg_tool")
+    exec_pg_command = PProp("odoo.tools.misc:exec_pg_command")
+    exec_pg_command_pipe = PProp("odoo.tools.misc:exec_pg_command_pipe")
+    exec_pg_environ = PProp("odoo.tools.misc:exec_pg_environ")
+    find_pg_tool = PProp("odoo.tools.misc:find_pg_tool")
