@@ -27,6 +27,18 @@ class Authentication:
         return common.exp_authenticate(database, login, password, context)
 
 
+class Logging:
+    @property
+    def ColoredPerfFilter(self):
+        netsvc = import_module("odoo.netsvc")
+        return netsvc.ColoredPerfFilter
+
+    @property
+    def PerfFilter(self):
+        netsvc = import_module("odoo.netsvc")
+        return netsvc.PerfFilter
+
+
 class WSGI:
     @property
     def app(self):
@@ -127,7 +139,7 @@ class Config:
     @property
     def config(self):
         if not self._config:
-            self._config = import_module("odoo.tools.config")
+            self._config = import_module("odoo.tools.config").config
         return self._config
 
     @property

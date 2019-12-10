@@ -9,6 +9,7 @@ __version__ = "0.0.1"
 __all__ = ["RUNMODE", "main", "framework"]
 
 import logging
+import colorlog
 import threading
 import os
 import enum
@@ -45,7 +46,7 @@ if jsonlogger:
 
 
 # Those might import RUNMODE
-from .config import load_config  # noqa
+from .configs import load_config  # noqa
 from .interfaces import odoo  # noqa
 from .patchers.odoo import Patcher  # noqa
 from .connections import create_custom_schema_layout  # noqa
@@ -66,7 +67,7 @@ def main(
 
     Then hand off to a subcommand."""
     rootlogger = logging.getLogger()
-    rootlogger.setLevel(logging.WARNING - max(log_level, 2) * 10)
+    rootlogger.setLevel(logging.WARNING - min(log_level, 2) * 10)
     logging.captureWarnings(True)
     config = load_config(config_dir, run_mode)
 
@@ -96,16 +97,26 @@ def main(
             "%(asctime)s %(levelname)s %(dbname)s "
             "%(name)s: %(message)s %(perf_info)s"
         )
-    handler = logging.StreamHandler()
-    if handler.isatty():
-        formatter = odoo.netscv.ColoredFormatter(logformat)
-        perf_filter = odoo.netscv.ColoredPerfFilter()
+    handler = colorlog.StreamHandler()
+    if handler.stream.isatty():
+        formatter = colorlog.ColoredFormatter(
+            logformat,
+            log_colors={
+                "DEBUG": "cyan",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "red,bg_white",
+            },
+            secondary_log_colors={"message": {"ERROR": "red", "CRITICAL": "red"}},
+        )
+        perf_filter = odoo.Logging().ColoredPerfFilter()
     elif jsonlogger:
         formatter = JSONFormatter(logformat)
-        perf_filter = odoo.netscv.PerfFilter()
+        perf_filter = odoo.Logging().PerfFilter()
     else:
-        formatter = odoo.netscv.Formatter(logformat)
-        perf_filter = odoo.netscv.PerfFilter()
+        formatter = logging.Formatter(logformat)
+        perf_filter = odoo.Logging().PerfFilter()
 
     handler.setFormatter(formatter)
     logging.getLogger().addHandler(handler)
