@@ -132,7 +132,6 @@ class BaseConfig(DataClassDictMixin):
         # Dummy instanciation as mashumaro doesn't support defaulting
         # see: https://github.com/Fatal1ty/mashumaro/issues/14
         default_instance = cls(validate=False)
-        cfg = {}
         cfg = default_instance.to_dict()
         for child in cls.confd.iterdir():
             if child.name == cls._file_name:
