@@ -9,6 +9,7 @@ __all__ = ["BasePatcher", "PatchableProperty"]
 
 import importlib
 import logging
+import inspect
 
 from functools import wraps
 
@@ -63,37 +64,47 @@ class BasePatcher:
         return decorator
 
     def apply(self):
-        for attr in self.__dict__.values():
-            if not isinstance(getattr(super(), attr, None), PatchableProperty):
-                _log.debug(
-                    f"Skipping {attr}: not defined or not as PatchableProperty "
-                    "on the interface base class (or no interface base class "
-                    "defined)."
-                )
-                continue
-            if hasattr(attr, "onFeature"):
-                if getattr(attr, "onFeature") not in self.features:
+        patchable_interface_class = type(self).__mro__[1]
+        for attr, patch in inspect.getmembers(self, predicate=inspect.ismethod):
+            # Feature flags
+            if hasattr(patch, "onFeature"):
+                if getattr(patch, "onFeature") not in self.features:
                     _log.info(
                         f"Skipping {attr} as feature '{attr.onFeature}' is "
                         "not enabled."
                     )
                     continue
-            if hasattr(attr, "unlessFeature"):
-                if getattr(attr, "unlessFeature") in self.features:
+            if hasattr(patch, "unlessFeature"):
+                if getattr(patch, "unlessFeature") in self.features:
                     _log.info(
                         f"Skipping {attr} as feature '{attr.unlessFeature}' is "
                         "enabled."
                     )
                     continue
+            #
             try:
-                setattr(super(), attr, getattr(self, attr))
+                candidate = patchable_interface_class.__getattribute__(
+                    patchable_interface_class, attr
+                )
+            except AttributeError:
+                _log.debug(
+                    f"Skipping {attr}: not defined on patchable interface class."
+                )
+                continue
+            if not isinstance(candidate, PatchableProperty):
+                _log.debug(
+                    f"Skipping {attr}: not a PatchableProperty on the patchable "
+                    "interface base class."
+                )
+                continue
+            try:
+                setattr(patchable_interface_class(), attr, patch)
             except Exception:
                 msg = f"Patch {attr} not applied"
                 _log.ciritcal(msg)
                 raise PatchError(msg)
             else:
-                target = super().__dict__[attr].obj_path
-                _log.info(f"{target} patched. ")
+                _log.info(f"{candidate.obj_path} patched. ")
 
 
 class PatchableProperty(object):
@@ -102,7 +113,7 @@ class PatchableProperty(object):
         self.mod_path = obj_path.rpartition(":")[0]
         self.obj = obj_path.rpartition(":")[2]
 
-    def __get__(self, obj, klass=None):
+    def __get__(self, obj, type=None):
         module = importlib.import_module(self.mod_path)
         obj = self.obj.rpartition(".")[2]
         base = self.obj.rpartition(".")[0]

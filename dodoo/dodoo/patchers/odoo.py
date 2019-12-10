@@ -35,7 +35,8 @@ def _db_ops_alternative(alternative, *args, **kwargs):
     )
 
 
-class Patcher(BasePatcher):
+# Inheriting order important
+class Patcher(odoo.Patchable, BasePatcher):
     def __init__(self, odooconfig, dbconfig, smtpconfig):
         """Initializes the patcher and set's the feature flags"""
         self.OdooConfig = odooconfig
