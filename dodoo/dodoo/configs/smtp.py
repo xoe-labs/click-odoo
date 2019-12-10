@@ -27,8 +27,14 @@ class SmtpConfig(BaseConfig):
     # Secrets
     class Sec():
         __slots__ = []  # Immutable
-        user = lambda self: read_secret("SMTPUSER_FILE")  # noqa: E731
-        password = lambda self: read_secret("SMTPPASSWORD_FILE")  # noqa: E731
+
+        @property
+        def user(self):
+            return read_secret("SMTPUSER_FILE")
+
+        @property
+        def password(self):
+            return read_secret("SMTPPASSWORD_FILE")
     Sec = Sec()
     # fmt: on
 

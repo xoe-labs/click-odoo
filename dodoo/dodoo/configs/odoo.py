@@ -70,7 +70,11 @@ class OdooConfig(BaseConfig):
     # Secrets
     class Sec():
         __slots__ = []  # Immutable
-        admin_passwd = lambda: read_secret("ODOOADMINPASSWORD_FILE")  # noqa: E731
+
+        @property
+        def admin_passwd(self):
+            return read_secret("ODOOADMINPASSWORD_FILE")
+
     Sec = Sec()
     # fmt: on
 

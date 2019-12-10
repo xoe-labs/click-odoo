@@ -1,17 +1,38 @@
 import json
 import logging
+import os
 from pathlib import Path
 
 import pytest
 
 from dodoo import RUNMODE
-from dodoo.configs import load_config, read_secret
+from dodoo.configs import load_config
 from dodoo.configs._errors import (
     ConfigDirNoDirError,
     ConfigDirOwnershipError,
     NoConfigDirError,
     NoPathError,
 )
+
+
+@pytest.fixture(autouse=True, scope="package")
+def environ(tmp_path_factory) -> None:
+    secrets = tmp_path_factory.mktemp("secrets")
+    admin_passwd = secrets / "admin"
+    admin_passwd.write_text("admin-pwd")
+    admin_passwd.chmod(0o500)
+    smtpuser = secrets / "smtpuser"
+    smtpuser.write_text("smtp-user")
+    smtpuser.chmod(0o500)
+    smtppwd = secrets / "smtppwd"
+    smtppwd.write_text("smtp-pwd")
+    smtppwd.chmod(0o500)
+    os.environ.update(ODOOADMINPASSWORD_FILE=str(admin_passwd))
+    os.environ.update(SMTPUSER_FILE=str(smtpuser))
+    os.environ.update(SMTPPASSWORD_FILE=str(smtppwd))
+    secrets.chmod(0o500)
+    yield
+    secrets.chmod(0o777)
 
 
 @pytest.fixture()
@@ -84,4 +105,14 @@ class TestConfig:
         # No warnings or critical logs should occur
         caplog.set_level(logging.WARNING)
         load_config(confd, RUNMODE.Production)
+        assert len(caplog.records) == 0
+
+    def test_read_secret(self, confd, caplog):
+        # confd fixture is holding a duly preparated config dir
+        # No warnings or critical logs should occur
+        caplog.set_level(logging.WARNING)
+        config = load_config(confd, RUNMODE.Production)
+        assert "admin-pwd" == config.Odoo.Sec.admin_passwd
+        assert "smtp-user" == config.Smtp.Sec.user
+        assert "smtp-pwd" == config.Smtp.Sec.password
         assert len(caplog.records) == 0

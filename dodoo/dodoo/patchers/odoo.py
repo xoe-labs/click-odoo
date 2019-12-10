@@ -71,7 +71,7 @@ class Patcher(BasePatcher):
         return partial(_db_ops_alternative, "'dodoo deinit'")  # TODO: impl.
 
     def verify_admin_password(self, _self, password):
-        return password == self.OdooConfig.Secrets.admin_passwd()
+        return password == self.OdooConfig.Sec.admin_passwd
 
     def connection_info_for(self, dbname):
         # Already reloaded by _patch_odoo_db_connect
