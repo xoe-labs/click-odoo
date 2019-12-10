@@ -1,6 +1,9 @@
+import pathlib
+
 import psycopg2
 from click.testing import CliRunner
 
+from dodoo import RUNMODE
 from dodoo.cli import main
 
 
@@ -29,3 +32,13 @@ class TestCLI:
         # TODO: add database servie to tests
         # At this point we don't have a database yet
         assert isinstance(result.exception, psycopg2.OperationalError)
+
+        import dodoo
+
+        assert dodoo.framework().dodoo_run_mode == RUNMODE.Production
+        assert (
+            dodoo.framework().dodoo_project_version == project_version_file.read_text()
+        )
+        o = pathlib.Path(dodoo.framework().__file__)
+        h = pathlib.Path(__file__)
+        assert h.parent.parent.parent.parent == o.parent.parent.parent

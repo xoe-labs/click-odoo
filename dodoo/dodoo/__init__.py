@@ -63,7 +63,6 @@ from .connections import create_custom_schema_layout  # noqa
 _framework = None
 
 
-@property
 def framework():
     return _framework
 
