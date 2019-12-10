@@ -116,3 +116,9 @@ class TestConfig:
         assert "smtp-user" == config.Smtp.Sec.user
         assert "smtp-pwd" == config.Smtp.Sec.password
         assert len(caplog.records) == 0
+
+    def test_odoo_config_apply(self, confd, caplog):
+        caplog.set_level(logging.WARNING)
+        config = load_config(confd, RUNMODE.Production)
+        config.Odoo.apply()
+        assert len(caplog.records) == 0

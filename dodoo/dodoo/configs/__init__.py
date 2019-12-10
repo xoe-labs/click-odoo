@@ -16,7 +16,6 @@ from pathlib import Path
 from mashumaro import DataClassDictMixin
 from mashumaro.types import SerializableType
 from dodoo import RUNMODE
-from dodoo.interfaces import odoo
 
 from ._errors import (
     PathNotAbsoluteError,
@@ -166,11 +165,6 @@ class BaseConfig(DataClassDictMixin):
         except Exception:
             _log.warning(f"Hot reload of {self.__name__} failed.")
             return False
-
-    def apply(self):
-        cfg = odoo.Config()
-        for k, v in self.__dict__:
-            cfg.config[k] = v
 
     def _validate(self):
         return

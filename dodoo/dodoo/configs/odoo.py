@@ -87,14 +87,17 @@ class OdooConfig(BaseConfig):
             _log.debug(f"logger level set: {element}")
 
     def apply(self):
-        super().apply()
         cfg = odoo.Config()
+        for k, v in self.__dict__.items():
+            cfg.config[k] = v
         cfg.config["list_db"] = self.list_db
         cfg.config["addons_path"] = ",".join(
-            self.scoped_addons_dir
-            + self.resolve_addons_paths()
+            [str(self.scoped_addons_dir)]
+            + [str(p) for p in self.resolve_addons_paths()]
             + cfg.config["addons_path"].split(",")
         )
+        # Fix frozenset config value
+        cfg.config["server_wide_modules"] = ",".join(cfg.config["server_wide_modules"])
         # Fix loaded defaults
         cfg.conf.addons_paths = cfg.config["addons_path"].split(",")
         server_wide_modules = cfg.config["server_wide_modules"].split(",")
