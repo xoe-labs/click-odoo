@@ -35,7 +35,8 @@ pygit2 = "^1.0.0"
 click-plugins = "1.1.1"
 click = "7.0"
 click-pathlib = "^2019.6"
-ipdb = "^0.12.3"
+colorlog = "^4.0"
+dataclasses-json = "^0.3.6"
 
 [tool.poetry.extras]
 server = ["dodoo-run", "dodoo-init", "dodoo-backup", "dodoo-copy"]
@@ -47,6 +48,7 @@ pre-commit = "^1.20"
 pytest = "^5.3"
 click-man = "^0.3.0"
 pytest-cov = "^2.8"
+pdbpp = "^0.10.2"
 odoo = { directory = "../.odoo", version = "12.0" }  # Clone & checkout to this location first
 # Once resolved: https://github.com/sdispater/poetry/issues/1698
 # odoo = { git = "https://github.com/odoo/odoo.git", branch = "12.0" }
