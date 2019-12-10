@@ -5,14 +5,16 @@
 """This package implements the dodoo.configs api for Odoo server configuration"""
 
 
-__all__ = ["load_config", "BaseConfig", "read_secret"]
+__all__ = ["load_config", "BaseConfig", "read_secret", "PathLike"]
 
+import json
 import logging
 import os
 import stat
 from pathlib import Path
 
-from dataclasses_json import DataClassJsonMixin
+from mashumaro import DataClassDictMixin
+from mashumaro.types import SerializableType
 from dodoo import RUNMODE
 from dodoo.interfaces import odoo
 
@@ -25,7 +27,6 @@ from ._errors import (
     ConfigDirNoDirError,
     ConfigDirOwnershipError,
     InvalidOptionError,
-    InvalidOptionTypeError,
 )
 
 _log = logging.getLogger(__name__)
@@ -111,7 +112,16 @@ def load_config(config_dir, run_mode):
     return Config
 
 
-class BaseConfig(DataClassJsonMixin):
+class PathLike(os.PathLike, SerializableType):
+    def _serialize(self) -> str:
+        return self.__fspath__()
+
+    @classmethod
+    def _deserialize(cls, value: str) -> "PathLike":
+        return Path(value)
+
+
+class BaseConfig(DataClassDictMixin):
     @staticmethod
     def _cure(cfg: dict):
         return
@@ -119,14 +129,18 @@ class BaseConfig(DataClassJsonMixin):
     @classmethod
     def load(cls, confd: os.PathLike):
         cls.confd = confd
+        # Dummy instanciation as mashumaro doesn't support defaulting
+        # see: https://github.com/Fatal1ty/mashumaro/issues/14
+        default_instance = cls.__new__(cls)
         cfg = {}
+        cfg = default_instance.to_dict()
         for child in cls.confd.iterdir():
             if child.name == cls._file_name:
-                cfg = cls.from_json(child.read_text)
-                cls._cure(cfg)
+                cfg = json.load(child.read_text)
                 break
+        cls._cure(cfg)
         try:
-            return cls.__new__(cls, **cfg)
+            return cls.from_dict(cfg)
         except TypeError as e:
             raise InvalidOptionError(e.args[0])
 
@@ -152,13 +166,4 @@ class BaseConfig(DataClassJsonMixin):
             cfg.config[k] = v
 
     def _validate(self):
-        for k, v in self.__dict__.items():
-            orig_type = self.__dataclass_fields__[k].type
-            if orig_type == type(v):
-                continue
-            msg = (
-                f"Type '{type(v).__qualname__}' does not "
-                f"conform to '{orig_type.__qualname__}'"
-            )
-            InvalidOptionTypeError(msg)
         return

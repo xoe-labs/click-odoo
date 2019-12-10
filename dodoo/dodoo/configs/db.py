@@ -7,6 +7,7 @@
 import logging
 import os
 from pathlib import Path
+from typing import Mapping
 
 from psycopg2.extensions import make_dsn, parse_dsn
 
@@ -30,8 +31,8 @@ class DbConfig(BaseConfig):
     # fmt: off
     default_maxconn:     int = 64  # noqa: E241
     default_dsn:         str = _default_dsn  # noqa: E241
-    per_dbname_dsn:     dict = field(default_factory=dict)  # noqa: E241
-    per_dbname_maxconn: dict = field(default_factory=dict)  # noqa: E241
+    per_dbname_dsn:     Mapping[str, str] = field(default_factory=dict)  # noqa: E241
+    per_dbname_maxconn: Mapping[str, str] = field(default_factory=dict)  # noqa: E241
     # fmt: on
 
     def resolve_dsn(self, dbname):

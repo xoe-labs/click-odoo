@@ -36,7 +36,7 @@ click-plugins = "1.1.1"
 click = "7.0"
 click-pathlib = "^2019.6"
 colorlog = "^4.0"
-dataclasses-json = "^0.3.6"
+mashumaro = "^1.9"
 
 [tool.poetry.extras]
 server = ["dodoo-run", "dodoo-init", "dodoo-backup", "dodoo-copy"]

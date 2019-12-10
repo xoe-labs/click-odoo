@@ -7,18 +7,21 @@
 
 import logging
 import os
+import pathlib  # for monkey patches
 from pathlib import Path
-from typing import List
-
-from dataclasses_json import config as dataclass_json_config
+from typing import FrozenSet, List
 
 from dataclasses import dataclass, field
 from dodoo.interfaces import odoo
 
-from . import BaseConfig, read_secret
+from . import BaseConfig, PathLike, read_secret
 from ._errors import NoPathError, PathNoDirError, PathNoFileError, PathNotAbsoluteError
 
 _log = logging.getLogger(__name__)
+
+
+pathlib.Path._serialize = PathLike._serialize
+pathlib.PosixPath._serialize = PathLike._serialize
 
 
 def find_addons_path(addons_dir: os.PathLike):
@@ -47,36 +50,18 @@ def find_scoped_addons_path(addons_dir: os.PathLike):
     return paths_map
 
 
-_path_metadata = dataclass_json_config(encoder=str, decoder=Path)
-
-
 @dataclass(frozen=True)
 class OdooConfig(BaseConfig):
     list_db = False  # Immutable
     # fmt: off
-    data_dir:          os.PathLike = field(  # noqa: E241
-        default=Path("/mnt/odoo/persist"),
-        metadata=_path_metadata,
-    )
-    backup_dir:        os.PathLike = field(  # noqa: E241
-        default=Path("/mnt/odoo/backup"),
-        metadata=_path_metadata,
-    )
-    addons_dir:        os.PathLike = field(  # noqa: E241
-        default=Path("/mnt/odoo/addons"),
-        metadata=_path_metadata,
-    )
-    scoped_addons_dir: os.PathLike = field(  # noqa: E241
-        default=Path("/mnt/odoo/scoped_addons"),
-        metadata=_path_metadata,
-    )
-    geoip_database:    os.PathLike = field(  # noqa: E241
-        default=Path("/usr/share/GeoIP/GeoLite2-City.mmdb"),
-        metadata=_path_metadata,
-    )
+    data_dir:             PathLike = Path("/mnt/odoo/persist")  # noqa: E241
+    backup_dir:           PathLike = Path("/mnt/odoo/backup")  # noqa: E241
+    addons_dir:           PathLike = Path("/mnt/odoo/addons")  # noqa: E241
+    scoped_addons_dir:    PathLike = Path("/mnt/odoo/scoped_addons")  # noqa: E241
+    geoip_database:       PathLike = Path("/usr/share/GeoIP/GeoLite2-City.mmdb")  # noqa: E241
     unaccent:                 bool = True  # noqa: E241
-    server_wide_modules: frozenset = frozenset(["web", "base"])  # noqa: E241
-    log_handler:         frozenset = frozenset(["odoo.http.rpc.request:INFO",  # noqa: E241
+    server_wide_modules: FrozenSet[str] = frozenset(["web", "base"])  # noqa: E241
+    log_handler:         FrozenSet[str] = frozenset(["odoo.http.rpc.request:INFO",  # noqa: E241
                                                 "odoo.http.rpc.response:INFO", ])
 
     # Secrets
