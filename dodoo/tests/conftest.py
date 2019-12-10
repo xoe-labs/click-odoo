@@ -64,3 +64,11 @@ def confd(datadir, tmp_path_factory) -> Path:
     datadir.chmod(0o550)
     yield datadir
     datadir.chmod(0o777)
+
+
+@pytest.fixture(autouse=True, scope="package")
+def project_version_file(tmp_path_factory) -> Path:
+    project = tmp_path_factory.mktemp("project")
+    version = project / "version"
+    version.write_text("v0.1.0")
+    yield version

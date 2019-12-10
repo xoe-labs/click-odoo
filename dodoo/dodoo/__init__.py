@@ -32,17 +32,26 @@ class RUNMODE(enum.Enum):
     Production = 3
 
 
+class DBFormatter(logging.Formatter):
+    def format(self, record):
+        record.pid = os.getpid()
+        record.dbname = getattr(threading.current_thread(), "dbname", "?")
+        return super().format(record)
+
+
+class ColoredFormatter(DBFormatter, colorlog.ColoredFormatter):
+    pass
+
+
 if jsonlogger:
 
-    class JSONFormatter(jsonlogger.JsonFormatter):
+    class JSONFormatter(DBFormatter, jsonlogger.JsonFormatter):
         def format(self, record):
             if record.exc_info:
                 mod_name = record.exc_info[0].__module__
                 obj_name = record.exc_info[0].__name__
                 record.exc_class = f"{mod_name}:{obj_name}"
-            record.pid = os.getpid()
-            record.dbname = getattr(threading.currentThread(), "dbname", "?")
-            return jsonlogger.JsonFormatter.format(self, record)
+            return super().format(record)
 
 
 # Those might import RUNMODE
@@ -83,23 +92,20 @@ def main(
     _framework.dodoo_run_mode = run_mode
     _framework.dodoo_project_version = projectversion_file.read().rstrip()
 
-    odoo.Tools.resetlocale()
+    odoo.Tools().resetlocale()
 
     # TODO: Review if this is optimal
     if run_mode == RUNMODE.Develop:
         logformat = (
             "%(levelname)s %(dbname)s "
-            "%(name)s: %(message)s %(perf_info)s\n"
+            "%(name)s: %(message)s\n"
             "file://%(pathname)s:%(lineno)d"
         )
     else:
-        logformat = (
-            "%(asctime)s %(levelname)s %(dbname)s "
-            "%(name)s: %(message)s %(perf_info)s"
-        )
+        logformat = "%(asctime)s %(levelname)s %(dbname)s " "%(name)s: %(message)s"
     handler = colorlog.StreamHandler()
     if handler.stream.isatty():
-        formatter = colorlog.ColoredFormatter(
+        formatter = ColoredFormatter(
             logformat,
             log_colors={
                 "DEBUG": "cyan",
@@ -115,7 +121,7 @@ def main(
         formatter = JSONFormatter(logformat)
         perf_filter = odoo.Logging().PerfFilter()
     else:
-        formatter = logging.Formatter(logformat)
+        formatter = DBFormatter(logformat)
         perf_filter = odoo.Logging().PerfFilter()
 
     handler.setFormatter(formatter)
@@ -135,10 +141,10 @@ def main(
     config.Odoo.apply()
     # config.Db.apply() - completely patched for hotreload
     # config.Smtp.apply() - completely patched for hotreload
-    odoo.Modules.initialize_sys_path()
+    odoo.Modules().initialize_sys_path()
 
     # Create database schema layouts on all configured database (if not exists)
-    for dsn in config.Db.per_dbname_dsn.values() + config.Db.default_dsn:
+    for dsn in list(config.Db.per_dbname_dsn.values()) + [config.Db.default_dsn]:
         create_custom_schema_layout(
             dsn, [config.Db.odoo_schema, config.Db.dodoo_schema]
         )
