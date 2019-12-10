@@ -23,9 +23,8 @@ class Authentication:
     def authenticate(database, login, password, context=None):
         if not context:
             context = {}
-        return import_module("odoo.service.common.exp_authenticate")(
-            database, login, password, context
-        )
+        common = import_module("odoo.service.common")
+        return common.exp_authenticate(database, login, password, context)
 
 
 class WSGI:
@@ -36,79 +35,88 @@ class WSGI:
 
 class Registry:
     def __new__(cls, dbname):
-        return import_module("odoo.modules.registry.Regsitry")(dbname)
+        registry = import_module("odoo.modules.registry")
+        return registry.Regsitry(dbname)
 
     @staticmethod
     def items():
-        return import_module("odoo.modules.registry.Regsitry.registries").items()
+        registry = import_module("odoo.modules.registry")
+        return registry.Regsitry.registries.items()
 
 
 class Environment:
     def __new__(cls, cr, uid, context=None):
         if not context:
             context = {}
-        manage_environments = import_module("odoo.api.Environment.manage")
-        with manage_environments():
-            yield import_module("odoo.api.Environment")(cr, uid, context)
+        Environment = import_module("odoo.api.Environment")
+        with Environment.manage():
+            yield Environment(cr, uid, context)
 
 
 class Cron:
     @staticmethod
     def acquire(dbname):
-        return import_module("odoo.addons.base.models.ir_cron.ir_cron._acquire_job")(
-            dbname
-        )
+        ir_cron = import_module("odoo.addons.base.models.ir_cron")
+        return ir_cron.ir_cron._acquire_job(dbname)
 
 
 class Tools:
     @staticmethod
     def resetlocale():
-        import_module("odoo.tools.translate.resetlocale")()
+        tools = import_module("odoo.tools")
+        tools.resetlocale()
 
     @staticmethod
     def lazy(obj):
-        import_module("odoo.tools.func.lazy")(obj)
+        func = import_module("odoo.tools.func")
+        func.lazy(obj)
 
 
 class Modules:
     @staticmethod
     def initialize_sys_path():
-        import_module("odoo.modules.module.initialize_sys_path")()
+        module = import_module("odoo.modules.module")
+        module.initialize_sys_path()
 
     @property
     def MANIFEST_NAMES(self):
-        return import_module("odoo.modules.module.MANIFEST_NAMES")
+        module = import_module("odoo.modules.module")
+        return module.MANIFEST_NAMES
 
     @property
     def loaded(self):
-        return import_module("odoo.modules.module.MANIFEST_NAMES")
+        module = import_module("odoo.modules.module")
+        return module.loaded
 
     @property
     def load(self, module):
-        return import_module("odoo.modules.module.load_openerp_module")(module)
+        module = import_module("odoo.modules.module")
+        return module.load_openerp_module(module)
 
     @property
     def deduce_module_name_from(self, path):
-        return import_module("odoo.modules.module.get_module_root")(path)
+        module = import_module("odoo.modules.module")
+        return module.get_module_root(path)
 
     @property
     def deduce_module_and_relpath_from(self, path):
-        res = import_module("odoo.modules.module.get_resource_from_path")(path)
+        module = import_module("odoo.modules.module")
+        res = module.get_resource_from_path(path)
         if not res:  # Fixing the return signature
             return None, None
         return res
 
     @property
     def parse_manifest_from(self, module):
-        return import_module(
-            "odoo.modules.module.load_information_from_description_file"
-        )(module)
+        module = import_module("odoo.modules.module")
+        return module.load_information_from_description_file(module)
 
 
 class Database:
     @staticmethod
     def close_all():
-        import_module("odoo.sql_db.close_all")()
+        sql_db = import_module("odoo.sql_db")
+        sql_db.close_all()
 
 
 class Config:

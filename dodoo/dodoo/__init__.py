@@ -58,7 +58,9 @@ def framework():
     return _framework
 
 
-def main(framework_dir, config_dir, call_home, run_mode, log_level, codeversion_file):
+def main(
+    framework_dir, config_dir, call_home, run_mode, log_level, projectversion_file
+):
     """Provide the common cli entrypoint, initialize the dodoo python
     environment, load configuration and set up logging.
 
@@ -70,7 +72,7 @@ def main(framework_dir, config_dir, call_home, run_mode, log_level, codeversion_
 
     # Load odoo module from specified framework path
     if framework_dir:
-        sys.path.insert(0, framework_dir)
+        sys.path.insert(0, str(framework_dir))
 
     # Hold a reference to the global odoo namespace so it's not
     # garbage collected after beeing patched
@@ -78,7 +80,7 @@ def main(framework_dir, config_dir, call_home, run_mode, log_level, codeversion_
     import odoo as _framework
 
     _framework.dodoo_run_mode = run_mode
-    _framework.dodoo_project_version = codeversion_file.read().rstrip()
+    _framework.dodoo_project_version = projectversion_file.read().rstrip()
 
     odoo.Tools.resetlocale()
 

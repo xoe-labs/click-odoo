@@ -83,7 +83,7 @@ EPLIOG = (
     help="Specify the log level from: info, debug. Without: warn.",
 )
 @click.argument(
-    "codeversion-file",
+    "projectversion-file",
     type=click.File("r"),
     # help="Specify the version file containing the project's semantic version",
 )
