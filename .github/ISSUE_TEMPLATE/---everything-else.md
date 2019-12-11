@@ -8,9 +8,13 @@ labels: ''
 assignees: ''
 
 ---
+<!--- Provide a general summary in the title above. -->
 
-<!-- Describe your question and issue here. This space is meant to be used for general questions that are neither bugs, feature requests, nor documentation issues. A good example would be a question regarding doDoo's roadmap, for example. If you're looking for help when it comes to using doDoo, consider posting a question on StackOverflow instead: http://stackoverflow.com/questions/tagged/dodoo or join the dodo Matrix Chat: -->
+<!--- StackOverflow: https://stackoverflow.com/questions/tagged/dodoo -->
+<!--- Matrix Chat: https://matrix.to/#/%23dodoo:matrix.org-->
 
+
+## Checklist
 
 <!-- Checked checkbox should look like this: [x] -->
 - [ ] I have searched the [issues](https://github.com/xoe-labs/dodoo/issues) of this repo and believe that this is not a duplicate.

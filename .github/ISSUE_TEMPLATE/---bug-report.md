@@ -6,28 +6,23 @@ labels: 'bug'
 assignees: ''
 
 ---
+<!--- Provide a general summary in the title above. -->
 
-<!--
-  Hi there! Thank you for discovering and submitting an issue.
+<!--- This template is entirely optional and can be removed, but is here to help both you and us. -->
+<!--- Anything on lines wrapped in comments like these will not show up in the final text. -->
 
-  Before you submit this; let's make sure of a few things.
-  Please make sure the following boxes are ticked if they are correct.
-  If not, please try and fulfill these first.
--->
+## Checklist
 
 <!-- Checked checkbox should look like this: [x] -->
-- [ ] I am on the [latest](https://github.com/xoe-labs/dodoo/releases/latest) doDoo version.
-- [ ] I have searched the [issues](https://github.com/xoe-labs/dodoo/issues) of this repo and believe that this is not a duplicate.
-- [ ] If an exception occurs when executing a command, I executed it again in debug mode (`-vvv` option).
+- [ ] On the [latest](https://github.com/xoe-labs/dodoo/releases/latest) doDoo version.
+- [ ] I have searched the [issues](https://github.com/xoe-labs/dodoo/issues) and believe that this is not a duplicate.
+- [ ] I have executed the command in debug mode (`-vvv` option) and linked log output in a gist.
 
-<!--
-  Once those are done, if you're able to fill in the following list with your information,
-  it'd be very helpful to whoever handles the issue.
--->
 
-- **OS version and name**: <!-- Replace with version + name -->
-- **doDoo version**: <!-- Replace with version -->
-- **Link of a [Gist](https://gist.github.com/) with traceback**: <!-- Gist Link Here -->
+- **OS name**: <!-- put here -->
+- **`dodoo --version`**: <!-- paste output here -->
+- **[Gist](https://gist.github.com/) with traceback / log output**: <!-- link here -->
 
-## Issue
-<!-- Now feel free to write your issue, but please be descriptive! Thanks again 🙌 ❤️ -->
+## Description
+
+<!--- Describe the bug in detail here. -->

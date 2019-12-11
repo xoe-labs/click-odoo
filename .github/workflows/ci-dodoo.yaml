@@ -1,0 +1,136 @@
+name: CI (dodoo)
+
+env:
+  PROJECT_ROOT: dodoo
+
+on:
+
+  pull_request:
+    paths:
+    - 'dodoo/**'
+    - '!dodoo/**/*.md'
+
+  push:
+    branches: [master]
+    # paths:
+    # - 'dodoo/**'
+    # - '!dodoo/**/*.md'
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2-beta
+
+      - name: Cache Odoo v12
+        uses: actions/cache@v1
+        id: odoocache
+        with:
+          path: .odoo
+          key: odoo-v12
+          restore-keys: |
+            odoo-v12
+
+      - name: Fetch Odoo v12
+        uses: actions/checkout@v2-beta
+        with:
+          repository: odoo/odoo
+          ref: "12.0"
+          path: .odoo
+          clean: false
+        if: steps.odoocache.outputs.cache-hit != 'true'
+
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - name: Install Poetry
+        uses: dschep/install-poetry-action@v1.2
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v1
+        id: cache
+        with:
+          path: ~/.virtualenvs
+          key: poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            poetry-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Set Poetry config
+        run: |
+          poetry config settings.virtualenvs.in-project false
+          poetry config settings.virtualenvs.path ~/.virtualenvs
+
+      - name: Python dependency headers
+        run: |
+          sudo apt update
+          sudo apt-get install libsasl2-dev python-dev libldap2-dev libssl-dev libpq-dev
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Install Dependencies
+        run: cd $PROJECT_ROOT && poetry install
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Run all tests with Pytest
+        run: cd $PROJECT_ROOT && poetry run pytest
+
+
+  release:
+    runs-on: ubuntu-latest
+
+    needs: test
+
+    env:
+      PYPI_USERNAME: xoe-labs
+      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2-beta
+
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - name: Install AutoPub & GithubRelease
+        run: pip install githubrelease; pip install --pre autopub
+
+      - name: Check for release file
+        run: autopub check
+
+      - name: Prepare release
+        run: autopub prepare
+
+      - name: Install Poetry
+        uses: dschep/install-poetry-action@v1.2
+
+      - name: Restore Poetry virtualenv from Cache
+        uses: actions/cache@v1
+        id: cache
+        with:
+          path: ~/.virtualenvs
+          key: poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            poetry-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Set Poetry config
+        run: |
+          poetry config settings.virtualenvs.in-project false
+          poetry config settings.virtualenvs.path ~/.virtualenvs
+
+      - name: Build
+        run: cd $PROJECT_ROOT; autopub build
+
+      - name: Commit new release
+        run: autopub commit
+
+      - name: Create github release
+        run: autopub githubrelease
+
+      - name: Publish release on pypi
+        run: cd $PROJECT_ROOT; autopub publish

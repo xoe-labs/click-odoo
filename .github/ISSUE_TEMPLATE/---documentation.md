@@ -1,22 +1,21 @@
 ---
 name: "\U0001F4DA Documentation"
-about: Did you find errors, problems, or anything unintelligible in the docs (https://github.com/xoe-labs/dodoo#readme)?
+about: Errors, problems, or unintelligible sections in the docs?
 title: ''
 labels: 'documentation'
 assignees: ''
 
 ---
+<!--- Provide a general summary in the title above. -->
 
-<!--
-  Hi there! Thank you for discovering and submitting an issue with our documentation.
+<!--- This template is entirely optional and can be removed, but is here to help both you and us. -->
+<!--- Anything on lines wrapped in comments like these will not show up in the final text. -->
 
-  Before you submit this; let's make sure of a few things.
-  Please make sure the following boxes are ticked if they are correct.
-  If not, please try and fulfill these first.
--->
+## Checklist
 
 <!-- Checked checkbox should look like this: [x] -->
-- [ ] I have searched the [issues](https://github.com/xoe-labs/dodoo/issues) of this repo and believe that this is not a duplicate.
+- [ ] I have searched the [issues](https://github.com/xoe-labs/dodoo/issues) and believe that this is not a duplicate.
 
-## Issue
-<!-- Now feel free to write your issue, but please be descriptive! Thanks again 🙌 ❤️ -->
+## Description
+
+<!--- Describe the doc issue in detail here. Link relevant lines wherever possible. -->

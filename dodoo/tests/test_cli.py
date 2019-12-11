@@ -19,7 +19,7 @@ class TestCLI:
             "--confd",
             str(confd),
             "--framework",
-            "../../.odoo",
+            "../.odoo",
             str(project_version_file),
             "dummy",
         ]
@@ -41,4 +41,4 @@ class TestCLI:
         )
         o = pathlib.Path(dodoo.framework().__file__)
         h = pathlib.Path(__file__)
-        assert h.parent.parent.parent.parent == o.parent.parent.parent
+        assert h.parent.parent.parent == o.parent.parent.parent
