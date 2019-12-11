@@ -14,7 +14,7 @@ from pkg_resources import iter_entry_points
 from dodoo import RUNMODE, __version__, main as _main
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix="DODOO")
-EPLIOG = (
+EPILOG = (
     "All options and arguments can be specified via environment variables "
     "by prefixing their alphanumeric UPPERCASE equivalents with DODOO_.\n"
     "\nExample: DODOO_CODVERSION_FILE"
@@ -22,7 +22,7 @@ EPLIOG = (
 
 
 @with_plugins(iter_entry_points("dodoo.cli_plugins"))
-@click.group(context_settings=CONTEXT_SETTINGS, help=_main.__doc__, epilog=EPLIOG)
+@click.group(context_settings=CONTEXT_SETTINGS, help=_main.__doc__, epilog=EPILOG)
 @click.option(
     "-f",
     "--framework",

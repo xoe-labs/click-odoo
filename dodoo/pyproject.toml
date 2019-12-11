@@ -58,10 +58,6 @@ odoo = {path = "../.odoo"}
 [tool.poetry.scripts]
 dodoo = 'dodoo.cli:main'
 
-# [tool.poetry.plugins."dodoo.cli_plugins"]
-# test = dodoo-test.cli:test
-# pytest = dodoo-test.cli:pytest
-
 [tool.autopub]
 git-username = "blaggacao"
 git-email = "dar@xoe.solutions"
