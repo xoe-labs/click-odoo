@@ -31,6 +31,14 @@ class Authentication:
         return common.exp_authenticate(database, login, password, context)
 
 
+class Cli:
+    def __init__(self):
+        self._r = import_module("odoo.cli")
+
+    def shell(self):
+        return self._r.shell.Shell
+
+
 class Logging:
     def __init__(self):
         self._r = import_module("odoo.netsvc")

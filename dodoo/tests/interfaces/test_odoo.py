@@ -32,6 +32,9 @@ class TestOdooInterface:
     def test_cron(self):
         odoo.Cron().acquire("dbname")
 
+    def test_cli(self):
+        odoo.Cli().shell()
+
     def test_service(self):
         with pytest.raises(psycopg2.OperationalError):
             odoo.Service().seed_db("dbname")

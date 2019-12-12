@@ -93,8 +93,12 @@ def init(modules, with_demo, no_cache, database):
     if no_cache:
         odoo_createdb(database, with_demo, modules)
 
+    framework = dodoo.framework()
+    if not framework:
+        _log.critical("dodoo main must initialize the framework first.")
+
     digest = addons_digest(modules, with_demo)
-    dsn = dodoo.framework().dodoo_config.Db.resolve_dsn(MGT_DATABASE)
+    dsn = framework.dodoo_config.Db.resolve_dsn(MGT_DATABASE)
     with DbCache(dsn, CACHE_PREFIX) as dbcache:
         created = dbcache.create(database, digest)
         if created:
@@ -112,7 +116,11 @@ def init(modules, with_demo, no_cache, database):
 def trim_cache(max_age, max_size):
     """ Trim the odoo database cache.
     """
-    dsn = dodoo.framework().dodoo_config.Db.resolve_dsn(MGT_DATABASE)
+    framework = dodoo.framework()
+    if not framework:
+        _log.critical("dodoo main must initialize the framework first.")
+
+    dsn = framework.dodoo_config.Db.resolve_dsn(MGT_DATABASE)
     with DbCache(dsn, CACHE_PREFIX) as dbcache:
         if max_size:
             count = dbcache.trim_size(max_size)

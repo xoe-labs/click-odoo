@@ -59,7 +59,10 @@ def copy(modules, force_disconnect, from_db, new_db):
     This script copies using postgres CREATEDB WITH TEMPLATE.
     It also copies the filestore.
     """
-    dsn = dodoo.framework().dodoo_config.Db.resolve_dsn(MGT_DATABASE)
+    framework = dodoo.framework()
+    if not framework:
+        _log.critical("dodoo main must initialize the framework first.")
+    dsn = framework.dodoo_config.Db.resolve_dsn(MGT_DATABASE)
     with PublicCursor(dsn) as cr:
         if db_exists(cr, new_db):
             msg = f"Destination database {new_db} already exists."
