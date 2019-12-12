@@ -2,27 +2,15 @@
 
 ## Abstract
 
-`dodoo copy` subcommand copies a database on the given db conection and -
-optionally - installs a module list and/or executes raw SQL.
+`dodoo copy` subcommand copies a database and - optionally - installs a module
+list, it can force-disconnect connections to the source database, if asked.
 
 Installing modules allows you to overload certain modules which prepare a
 database for staging or testing environments.
 
-Executing raw sql goes further and let's you do aribtrary stuff on your
-copied database (eg. anonymize contact data or change the company name)
-
 ## Spec
 
-```
-dodoo copy [options] <source> <destination> <rawsql>
-    --force-disconnect   Attempt to disconnect users from the source database.
-    --install-modules    Comma separated list of addons to install.
-
-    --help      This help
-
-    All options can be supplied with environment variables:
-        Uppercase / strip inital '--' / replace '-' by '_' / prefix `DODOO_`.
-```
+see manpage
 
 
 <div align="center">
