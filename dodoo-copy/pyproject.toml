@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "dodoo-copy"
+version = "0.1.0"
+description = ""
+authors = ["\"David Arnold\" <\"dar@xoe.solutions\">"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+dodoo = "^2.0"
+psycopg2-binary = "^2.8"
+click = "7.0"
+
+[tool.poetry.dev-dependencies]
+# TODO: clone odoo with cache https://github.com/sdispater/poetry/issues/1698
+pytest-mock = "^1.13"
+pre-commit = "^1.20"
+pytest = "^5.3"
+click-man = "^0.3.0"
+pytest-cov = "^2.8"
+pdbpp = "^0.10.2"
+pytest-datadir = "^1.3"
+odoo = {path = "../.odoo"}
+dodoo = {path = "../dodoo"}
+
+[tool.poetry.plugins."dodoo.cli_plugins"]
+copy = "dodoo_copy.cli:copy"
+
+[tool.autopub]
+git-username = "blaggacao"
+git-email = "dar@xoe.solutions"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

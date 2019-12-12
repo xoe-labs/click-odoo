@@ -51,8 +51,6 @@ click-man = "^0.3.0"
 pytest-cov = "^2.8"
 pdbpp = "^0.10.2"
 pytest-datadir = "^1.3"
-autopub = "^0.1.3"
-githubrelease = "^1.5"
 odoo = {path = "../.odoo"}
 
 [tool.poetry.scripts]

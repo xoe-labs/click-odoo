@@ -90,6 +90,7 @@ def main(
 
     _framework.dodoo_run_mode = run_mode
     _framework.dodoo_project_version = projectversion_file.read().rstrip()
+    _framework.dodoo_config = config
 
     odoo.Tools().resetlocale()
 

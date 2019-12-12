@@ -8,6 +8,7 @@ Consequent lazy loading of patchable properties ensures patchability.
 For consistency, never access the odoo namespace directly."""
 
 from importlib import import_module
+from pathlib import Path
 
 from ..patchers import PatchableProperty as PProp
 
@@ -58,13 +59,21 @@ class Registry:
         return registry.Registry(dbname)
 
     @staticmethod
+    def update(dbname):
+        registry = import_module("odoo.modules.registry")
+        return registry.Registry(dbname, update_module=True)
+
+    @staticmethod
     def items():
         registry = import_module("odoo.modules.registry")
         return registry.Registry.registries.items()
 
 
 class Environment:
-    def __new__(cls, cr, uid, context=None):
+    def __new__(cls, cr, uid=None, context=None):
+        if not uid:
+            odoo = import_module("odoo")
+            uid = odoo.SUPERUSER_ID
         if not context:
             context = {}
         Environment = import_module("odoo.api.Environment")
@@ -92,9 +101,18 @@ class Tools:
         return self._f.lazy(obj)
 
 
+class Service:
+    def __init__(self):
+        self._r = import_module("odoo.service.db")
+
+    def seed_db(self, dbname):
+        self._r._create_empty_database(dbname)
+
+
 class Modules:
     def __init__(self):
         self._r = import_module("odoo.modules.module")
+        self._b = import_module("odoo.modules")
 
     def initialize_sys_path(self):
         self._r.initialize_sys_path()
@@ -110,6 +128,12 @@ class Modules:
     def load(self, module):
         return self._r.load_openerp_module(module)
 
+    def all_modules(self):
+        return self._r.get_modules()
+
+    def module_path_from(self, module):
+        return Path(self._r.get_module_path(module))
+
     def deduce_module_name_from(self, path):
         return self._r.get_module_root(path)
 
@@ -121,6 +145,18 @@ class Modules:
 
     def parse_manifest_from(self, module):
         return self._r.load_information_from_description_file(module)
+
+    def install_demo(self, dbname):
+        with Registry(dbname) as registry:
+            with registry.cursor() as cr:
+                # Creates an environment as side effect
+                self._b.loading.force_demo(cr)
+
+    def reflect(self, dbname):
+        with Registry(dbname) as registry:
+            with registry.cursor() as cr:
+                env = Environment(cr)
+                env["ir.module.module"].update_list()
 
 
 class Database:
@@ -150,6 +186,9 @@ class Config:
 
     def defaults(self):
         self.config._parse_config()
+
+    def filestore(self, dbname):
+        return Path(self.config.filestore(dbname))
 
 
 class Patchable:

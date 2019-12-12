@@ -1,24 +1,21 @@
-#!/usr/bin/env python3
 # =============================================================================
-# Created By  : David Arnold
-# Created Date: 2019-11-20T11:08-05:00
-# Credits     : Stéphane Bidoul, Thomas Binsfeld, Benjamin Willig
+# Created By : David Arnold
+# Credits    : Stéphane Bidoul, Thomas Binsfeld, Benjamin Willig
+# Part of    : xoe-labs/dodoo
 # =============================================================================
-"""This module implements the database and filestore cache for the dodoo init
-subcommand"""
-
+"""This module implements the dodoo init cache"""
 
 import contextlib
 import hashlib
 import logging
 from datetime import datetime
 
-from dodoo import odoo
+from dodoo.connections import PublicCursor
 
 _log = logging.getLogger(__name__)
 
 
-class DbCache:
+class DbCache(PublicCursor):
     """ Manage a cache of db templates.
 
     Templates are named prefix-YYYYmmddHHMM-hashsum, where
@@ -29,21 +26,15 @@ class DbCache:
     HASH_SIZE = hashlib.sha1().digest_size * 2
     MAX_HASHSUM = "f" * HASH_SIZE
 
-    def __init__(self, prefix):
+    def __init__(self, dsn, prefix, dry=False):
+        super().__init__(dsn, dry)
         self.prefix = prefix
         self.lock_id = self._make_lock_id()
-        conn = odoo.sql_db.db_connect("postgres")
-        self.pgcr = conn.cursor()
-        self.pgcr.autocommit(True)
 
     def __enter__(self):
+        cr = super().__enter__(self)
+        cr.autocommit(True)
         return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-    def close(self):
-        self.pgcr.close()
 
     def _make_lock_id(self):
         # try to make a unique lock id based on the cache prefix
@@ -53,11 +44,11 @@ class DbCache:
 
     @contextlib.contextmanager
     def _lock(self):
-        self.pgcr.execute("SELECT pg_advisory_lock(%s::bigint)", (self.lock_id,))
+        self.cr.execute("SELECT pg_advisory_lock(%s::bigint)", (self.lock_id,))
         try:
             yield
         finally:
-            self.pgcr.execute("SELECT pg_advisory_unlock(%s::bigint)", (self.lock_id,))
+            self.cr.execute("SELECT pg_advisory_unlock(%s::bigint)", (self.lock_id,))
 
     def _make_pattern(self, dt=None, hs=None):
         if dt:
@@ -77,41 +68,35 @@ class DbCache:
 
     def _create_db_from_template(self, dbname, template):
         _log.debug(f"Creating database {dbname} from {template}")
-        self.pgcr.execute(
-            """
+        self.cr.execute(
+            f"""
             CREATE DATABASE "{dbname}"
             ENCODING 'unicode'
             TEMPLATE "{template}"
-        """.format(
-                **locals()
-            )
+        """
         )
 
     def _rename_db(self, dbname_from, dbname_to):
         _log.debug(f"Renaming database {dbname_from} to {dbname_to}")
-        self.pgcr.execute(
-            """
+        self.cr.execute(
+            f"""
             ALTER DATABASE "{dbname_from}"
             RENAME TO "{dbname_to}"
-        """.format(
-                **locals()
-            )
+        """
         )
 
     def _drop_db(self, dbname):
         _log.debug(f"Dropping database {dbname}")
-        self.pgcr.execute(
-            """
+        self.cr.execute(
+            f"""
             DROP DATABASE "{dbname}"
-        """.format(
-                **locals()
-            )
+        """
         )
 
     def _find_template(self, hashsum):
         """ search same prefix and hashsum, any date """
         pattern = self.prefix + "-____________-" + hashsum
-        self.pgcr.execute(
+        self.cr.execute(
             """
             SELECT datname FROM pg_database
             WHERE datname like %s
@@ -119,7 +104,7 @@ class DbCache:
         """,
             (pattern,),
         )
-        r = self.pgcr.fetchone()
+        r = self.cr.fetchone()
         if r:
             return r[0]
         else:
@@ -157,32 +142,33 @@ class DbCache:
     def size(self):
         with self._lock():
             pattern = self._make_pattern()
-            self.pgcr.execute(
+            self.cr.execute(
                 """
                 SELECT count(*) FROM pg_database
                 WHERE datname like %s
             """,
                 (pattern,),
             )
-            return self.pgcr.fetchone()[0]
+            return self.cr.fetchone()[0]
 
     def purge(self):
         with self._lock():
             pattern = self._make_pattern()
-            self.pgcr.execute(
+            self.cr.execute(
                 """
                 SELECT datname FROM pg_database
                 WHERE datname like %s
             """,
                 (pattern,),
             )
-            for (datname,) in self.pgcr.fetchall():
+            for (datname,) in self.cr.fetchall():
                 self._drop_db(datname)
 
     def trim_size(self, max_size):
+        count = 0
         with self._lock():
             pattern = self._make_pattern()
-            self.pgcr.execute(
+            self.cr.execute(
                 """
                 SELECT datname FROM pg_database
                 WHERE datname like %s
@@ -191,16 +177,19 @@ class DbCache:
             """,
                 (pattern, max_size),
             )
-            for (datname,) in self.pgcr.fetchall():
+            for (datname,) in self.cr.fetchall():
                 self._drop_db(datname)
+                count += 1
+        return count
 
     def trim_age(self, max_age):
+        count = 0
         with self._lock():
             pattern = self._make_pattern()
             max_name = self._make_pattern(
                 dt=datetime.utcnow() - max_age, hs=self.MAX_HASHSUM
             )
-            self.pgcr.execute(
+            self.cr.execute(
                 """
                 SELECT datname FROM pg_database
                 WHERE datname like %s
@@ -209,5 +198,7 @@ class DbCache:
             """,
                 (pattern, max_name),
             )
-            for (datname,) in self.pgcr.fetchall():
+            for (datname,) in self.cr.fetchall():
                 self._drop_db(datname)
+                count += 1
+        return count

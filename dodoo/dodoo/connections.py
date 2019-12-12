@@ -23,10 +23,10 @@ class SchemaCursor:
 
     def __enter__(self):
         self.conn = psycopg2.connect(self.dsn)
-        self.cur = self.conn.cursor()
-        self.cur.execute(f"SET search_path TO {self.schema}")
+        self.cr = self.conn.cursor()
+        self.cr.execute(f"SET search_path TO {self.schema}")
 
-        return self.cur
+        return self.cr
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.dry:
