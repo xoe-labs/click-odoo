@@ -36,7 +36,7 @@ click = "7.0"
 click-pathlib = "^2019.6"
 colorlog = "^4.0"
 mashumaro = "^1.9"
-psycopg2-binary = "^2.8"
+psycopg2 = "^2.8"
 
 [tool.poetry.extras]
 server = ["dodoo-run", "dodoo-init", "dodoo-backup", "dodoo-copy"]
@@ -51,6 +51,7 @@ click-man = "^0.3.0"
 pytest-cov = "^2.8"
 pdbpp = "^0.10.2"
 pytest-datadir = "^1.3"
+# sudo apt-get install libsasl2-dev python-dev libldap2-dev libssl-dev libpq-dev
 odoo = {path = "../.odoo"}
 
 [tool.poetry.scripts]

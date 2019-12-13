@@ -6,7 +6,7 @@ authors = ["\"David Arnold\" <\"dar@xoe.solutions\">"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-dodoo = "^2.0"
+# dodoo = "^2.0"
 click = "7.0"
 
 [tool.poetry.dev-dependencies]
@@ -18,6 +18,7 @@ click-man = "^0.3.0"
 pytest-cov = "^2.8"
 pdbpp = "^0.10.2"
 pytest-datadir = "^1.3"
+# sudo apt-get install libsasl2-dev python-dev libldap2-dev libssl-dev libpq-dev
 odoo = {path = "../.odoo"}
 dodoo = {path = "../dodoo"}
 
