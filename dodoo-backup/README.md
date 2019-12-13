@@ -2,42 +2,19 @@
 
 ## Abstract
 
-`dodoo backup` subcommand snpashots a database and it's filestore into a local
-filemount and ships a **strongly** encrypted _deduplicating_ backup
-bandwith-efficiently (`zlib`) to a remote host over ssh using `borg`.
+`dodoo backup` subcommand backups and restores odoo instances.
+This tool is intended for use in sporadic or manual operations, specifically in
+the context of support operations or during development.
 
-No GnuGP nighmare as in `duplicity`. True BLAKE2b. Period.
+For a general backup solution for your odoo server, rather check out
+[`borg`](https://borgbackup.readthedocs.io).
 
-It can retrieve backups form the remote and restore them into an existing or
-fresh database.
-
-You need to deploy `borg` on the backup server. Backups give you peace of mind,
-so _know_ what you do. That's not asking too much. [RTFM](https://borgbackup.readthedocs.io/en/stable/deployment.html)
-
+<sub>Borg can use mount a backup repo and therefore might be a better alternative
+for scaling up-to-date support staff access to customer databases.</sub>
 
 ## Spec
 
-<sub>Encryption/Auth key provided by the `dodoo` server instance</sub>
-
-```
-dodoo backup [options] <subcommand>
-
-
-Subcommands:
-    init [options] <remote>
-    	--storage-quota 5G   Set storage quota of the new repository.
-    prune
-        --keep-daily    7
-	    --keep-weekly   4
-	    --keep-monthly  6
-	create <databasename> <tag>
-	restore <tag> <databasename>
-
-    --help      This help
-
-    All options can be supplied with environment variables:
-        Uppercase / strip inital '--' / replace '-' by '_' / prefix `DODOO_`.
-```
+see manpage
 
 
 <div align="center">
