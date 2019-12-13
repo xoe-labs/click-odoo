@@ -14,7 +14,6 @@ import stat
 from pathlib import Path
 
 from mashumaro import DataClassDictMixin
-from mashumaro.types import SerializableType
 from dodoo import RUNMODE
 
 from ._errors import (
@@ -112,15 +111,6 @@ def load_config(config_dir, run_mode):
     return Config
 
 
-class PathLike(os.PathLike, SerializableType):
-    def _serialize(self) -> str:
-        return self.__fspath__()
-
-    @classmethod
-    def _deserialize(cls, value: str) -> "PathLike":
-        return Path(value)
-
-
 class BaseConfig(DataClassDictMixin):
     @staticmethod
     def _cure(cfg: dict):
@@ -129,19 +119,17 @@ class BaseConfig(DataClassDictMixin):
     @classmethod
     def load(cls, confd: os.PathLike):
         cls.confd = confd
-        # Dummy instanciation as mashumaro doesn't support defaulting
-        # see: https://github.com/Fatal1ty/mashumaro/issues/14
-        default_instance = cls(validate=False)
-        cfg = default_instance.to_dict()
+        cfg = {}
         for child in cls.confd.iterdir():
             if child.name == cls._file_name:
                 try:
-                    cfg.update(json.loads(child.read_text()))
+                    cfg = json.loads(child.read_text())
+                    cls._cure(cfg)
+                    cfg.update()
                 except json.decoder.JSONDecodeError as e:
                     _log.critical(f"File {child} does not contain vaild json.")
                     raise e
                 break
-        cls._cure(cfg)
         try:
             return cls.from_dict(cfg)
         except TypeError as e:
