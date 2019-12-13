@@ -69,7 +69,7 @@ class Registry:
     @staticmethod
     def update(dbname):
         registry = import_module("odoo.modules.registry")
-        return registry.Registry(dbname, update_module=True)
+        return registry.Registry.new(dbname, update_module=True)
 
     @staticmethod
     def items():
