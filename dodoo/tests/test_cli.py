@@ -41,4 +41,4 @@ class TestCLI:
         )
         o = pathlib.Path(dodoo.framework().__file__)
         h = pathlib.Path(__file__)
-        assert h.parent.parent.parent == o.parent.parent.parent
+        assert h.parents[2] == o.parents[2]
