@@ -12,9 +12,12 @@ import logging
 import os
 from datetime import timedelta
 from pathlib import Path
-import dodoo
 from dodoo.utils import odoo as odooutils
+from dodoo.utils import db as dbutils
+from dodoo.utils import ensure_framework
 from dodoo.interfaces import odoo
+
+from typing import List, Tuple
 
 from .patchers.odoo import AttachmentStoragePatcher
 
@@ -25,10 +28,10 @@ _log = logging.getLogger(__name__)
 
 EXCLUDE_PATTERNS = ("*.pyc", "*.pyo")
 CACHE_PREFIX = "cache"
-MGT_DATABASE = "postgres"
 
 
-def odoo_createdb(dbname, with_demo, modules):
+@ensure_framework
+def odoo_createdb(dbname: str, with_demo: bool, modules: List[str]):
     """ Create an odoo database and initialize modules. Keep initial attachments
     within the database for cached template consistency."""
     odoo.Service().seed_db(dbname)
@@ -48,7 +51,7 @@ def odoo_createdb(dbname, with_demo, modules):
     odoo.Database().close_all()
 
 
-def _walk(top, exclude_patterns=EXCLUDE_PATTERNS):
+def _walk(top: str, exclude_patterns: Tuple[str] = EXCLUDE_PATTERNS) -> Path:
     """ Visit all files excluding specified patterns."""
     for root, dirnames, filenames in os.walk(top):
         root = Path(root)
@@ -61,7 +64,7 @@ def _walk(top, exclude_patterns=EXCLUDE_PATTERNS):
                     yield fpath
 
 
-def addons_digest(modules, with_demo):
+def addons_digest(modules: List[str], with_demo: bool) -> bytes:
     """ Calculate digest of the source files of installable modules.
     Differenciate between demo and non-demo initializations."""
     h = hashlib.sha1()
@@ -75,7 +78,7 @@ def addons_digest(modules, with_demo):
     return h.hexdigest()
 
 
-def init(modules, with_demo, no_cache, database):
+def init(modules: List[str], with_demo: bool, no_cache: bool, database: str) -> None:
     """ Create an Odoo database with pre-installed modules.
 
     This script manages a cache of database templates with the exact same
@@ -93,12 +96,8 @@ def init(modules, with_demo, no_cache, database):
     if no_cache:
         odoo_createdb(database, with_demo, modules)
 
-    framework = dodoo.framework()
-    if not framework:
-        _log.critical("dodoo main must initialize the framework first.")
-
     digest = addons_digest(modules, with_demo)
-    dsn = framework.dodoo_config.Db.resolve_dsn(MGT_DATABASE)
+    dsn = dbutils.maintenance_dsn()
     with DbCache(dsn, CACHE_PREFIX) as dbcache:
         created = dbcache.create(database, digest)
         if created:
@@ -113,14 +112,10 @@ def init(modules, with_demo, no_cache, database):
             _log.info(msg)
 
 
-def trim_cache(max_age, max_size):
+def trim_cache(max_age: int, max_size: int) -> None:
     """ Trim the odoo database cache.
     """
-    framework = dodoo.framework()
-    if not framework:
-        _log.critical("dodoo main must initialize the framework first.")
-
-    dsn = framework.dodoo_config.Db.resolve_dsn(MGT_DATABASE)
+    dsn = dbutils.maintenance_dsn()
     with DbCache(dsn, CACHE_PREFIX) as dbcache:
         if max_size:
             count = dbcache.trim_size(max_size)

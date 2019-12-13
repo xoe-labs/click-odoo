@@ -3,9 +3,17 @@
 # Credits    : Stéphane Bidoul, Thomas Binsfeld, Benjamin Willig
 # Part of    : xoe-labs/dodoo
 # =============================================================================
-"""This module implements common utilities not provided by the frameworks"""
+"""This module implements common odoo utilities not provided by the framework"""
+
+import logging
+import shutil
+from pathlib import Path
 
 from dodoo.interfaces import odoo
+
+from . import ensure_framework
+
+_log = logging.getLogger(__name__)
 
 # Adopted from acsone/click-odoo
 
@@ -14,6 +22,7 @@ class ModuleNotFound(Exception):
     pass
 
 
+@ensure_framework
 def expand_dependencies(modules, include_auto_install=True):
     """ Given a set od modules, returns a sorted list of all transitive
     dependencies. By default, `auto_install = True`  modules are included, too.
@@ -62,3 +71,36 @@ def expand_dependencies(modules, include_auto_install=True):
             # on other auto_install modules
             recurse = True
     return sorted(list(res))
+
+
+# #####################################
+# Odoo filestore utilities
+# #####################################
+
+
+@ensure_framework
+def drop_filestore(dbname):
+    fs = Path(odoo.Tools().filestore(dbname))
+    if fs.exists():
+        shutil.rmtree(fs)
+
+
+@ensure_framework
+def backup_filestore(dbname, folder):
+    fs = Path(odoo.Tools().filestore(dbname))
+    if not fs.is_dir():
+        _log.critical("dodoo main must initialize the framework first.")
+    shutil.copytree(fs, folder)
+
+
+@ensure_framework
+def restore_filestore(dbname, folder):
+    pass
+
+
+@ensure_framework
+def copy_filestore(source, dest):
+    filestore_source = odoo.Config().filestore(source)
+    if filestore_source.is_dir():
+        filestore_dest = odoo.Config().filestore(dest)
+        shutil.copytree(filestore_source, filestore_dest)
