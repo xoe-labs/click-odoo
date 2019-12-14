@@ -4,6 +4,7 @@
 # =============================================================================
 """This module implments generic database utils with postgres in mind."""
 
+from pathlib import Path
 
 from psycopg2.extensions import parse_dsn
 
@@ -46,48 +47,59 @@ def _maint_conn_args():
     return args
 
 
-def drop_database(dbname):
+def drop_database(dbname: str) -> None:
     from sh import dropdb
 
     dropdb(*_maint_conn_args(), dbname)
 
 
-def backup_database(dbname, file):
+def backup_database(dbname: str, file: Path) -> None:
     from sh import pg_dump
 
-    with file.open("wb") as f:
-        pg_dump(*_maint_conn_args(), "--format=custom", dbname, _out=f)
+    with file.open("wb") as file:
+        pg_dump(*_maint_conn_args(), "--format=custom", dbname, _out=file)
 
 
-def restore_database(dbname, file):
-    from sh import pg_restore
-
-    with file.open("rb") as f:
-        pg_restore(*_maint_conn_args(), dbname, _in=f)
-
-
-def copy_db(source, dest):
+def restore_database(dbname: str, file: Path) -> None:
     from sh import createdb
 
-    createdb(*_maint_conn_args(), "--locale=C", f"--template={source}", dest)
+    createdb(
+        *_maint_conn_args(),
+        # see odoo/odoo 3edd504f17a2fe435ccd8235037e96c11ba96c18 for rational
+        "--template=template0",
+        "--encoding=unicode",
+        "--locale=C",
+        dbname,
+    )
+
+    from sh import pg_restore
+
+    with file.open("rb") as file:
+        pg_restore(*_maint_conn_args(), f"--dbname={dbname}", _in=file)
 
 
-def db_exists(dbname):
+def copy_db(source: str, dest: str) -> None:
+    from sh import createdb
+
+    createdb(*_maint_conn_args(), f"--template={source}", dest)
+
+
+def db_exists(dbname: str) -> None:
     dsn = _dsn_resolver(MAINTENANCE_DATABASE)
     with PublicCursor(dsn) as cr:
         cr.execute(
             "SELECT datname FROM pg_catalog.pg_database "
-            "WHERE lower(datname) = lower({%s});",
+            "WHERE lower(datname) = lower(%s);",
             (dbname,),
         )
         return bool(cr.fetchone())
 
 
-def terminate_connections(dbname):
+def terminate_connections(dbname: str) -> None:
     dsn = _dsn_resolver(MAINTENANCE_DATABASE)
     with PublicCursor(dsn) as cr:
         cr.execute(
-            "SELECT pg_terminate_backend(pg_stat_activity.pid) "
+            "SELECT count(pg_terminate_backend(pg_stat_activity.pid)) "
             "FROM pg_stat_activity "
             "WHERE pg_stat_activity.datname = %s "
             "AND pid <> pg_backend_pid();",

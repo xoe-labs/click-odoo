@@ -13,13 +13,13 @@ class TestCLI:
         result = runner.invoke(main, ["--help"])
         assert result.exit_code == 0
 
-    def test_framework(self, confd, project_version_file):
+    def test_framework(self, confd, project_version_file, framework_dir):
         runner = CliRunner()
         args = [
             "--confd",
             str(confd),
             "--framework",
-            "../.odoo",
+            str(framework_dir),
             str(project_version_file),
             "dummy",
         ]
@@ -42,3 +42,9 @@ class TestCLI:
         o = pathlib.Path(dodoo.framework().__file__)
         h = pathlib.Path(__file__)
         assert h.parents[2] == o.parents[2]
+
+        # Cleanup for later tests during the same session
+        dodoo._framework.dodoo_run_mode = None
+        dodoo._framework.dodoo_project_version = None
+        dodoo._framework.dodoo_config = None
+        dodoo._framework = None

@@ -84,7 +84,7 @@ EPILOG = (
 )
 @click.argument(
     "projectversion-file",
-    type=click.File("r"),
+    type=click_pathlib.Path(exists=True, dir_okay=False, resolve_path=True),
     # help="Specify the version file containing the project's semantic version",
 )
 @click.version_option(version=__version__)

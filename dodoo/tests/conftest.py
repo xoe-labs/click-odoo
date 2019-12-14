@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -32,8 +33,30 @@ def environ(tmp_path_factory) -> None:
     secrets.chmod(0o777)
 
 
-@pytest.fixture()
-def confd(datadir, tmp_path_factory) -> Path:
+@pytest.fixture(scope="session")
+def framework_dir() -> Path:
+    return Path("../.odoo").resolve()
+
+
+@pytest.fixture(scope="session")
+def original_global_datadir():
+    return Path(os.path.realpath(__file__)).parent / "data"
+
+
+def prep_global_datadir(tmp_path_factory, original_global_datadir):
+    temp_dir = tmp_path_factory.mktemp("data") / "datadir"
+    shutil.copytree(original_global_datadir, temp_dir)
+    return temp_dir
+
+
+@pytest.fixture(scope="session")
+def global_datadir(tmp_path_factory, original_global_datadir):
+    return prep_global_datadir(tmp_path_factory, original_global_datadir)
+
+
+@pytest.fixture(scope="module")
+def confd(global_datadir, tmp_path_factory) -> Path:
+    datadir = global_datadir / "confd"
     develop = datadir / "odooconfig.develop.json"
     stage = datadir / "odooconfig.stage.json"
     prod = datadir / "odooconfig.prod.json"
@@ -78,4 +101,4 @@ def project_version_file(tmp_path_factory) -> Path:
     project = tmp_path_factory.mktemp("project")
     version = project / "version"
     version.write_text("v0.1.0")
-    yield version
+    return version

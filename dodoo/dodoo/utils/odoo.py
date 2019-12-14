@@ -78,29 +78,37 @@ def expand_dependencies(modules, include_auto_install=True):
 # #####################################
 
 
+class TargetFilestoreExistsError(Exception):
+    pass
+
+
 @ensure_framework
-def drop_filestore(dbname):
-    fs = Path(odoo.Tools().filestore(dbname))
+def drop_filestore(dbname: str) -> None:
+    fs = odoo.Config().filestore(dbname)
     if fs.exists():
         shutil.rmtree(fs)
 
 
 @ensure_framework
-def backup_filestore(dbname, folder):
-    fs = Path(odoo.Tools().filestore(dbname))
-    if not fs.is_dir():
-        _log.critical("dodoo main must initialize the framework first.")
+def backup_filestore(dbname: str, folder: Path) -> None:
+    fs = odoo.Config().filestore(dbname)
     shutil.copytree(fs, folder)
 
 
-@ensure_framework
-def restore_filestore(dbname, folder):
-    pass
+def _copy_if_not_exists(src: Path, dest: Path) -> None:
+    if dest.exists():
+        raise TargetFilestoreExistsError(dest)
+    shutil.copytree(src, dest)
 
 
 @ensure_framework
-def copy_filestore(source, dest):
-    filestore_source = odoo.Config().filestore(source)
-    if filestore_source.is_dir():
-        filestore_dest = odoo.Config().filestore(dest)
-        shutil.copytree(filestore_source, filestore_dest)
+def restore_filestore(dbname: str, folder: Path) -> None:
+    fs_dest = odoo.Config().filestore(dbname)
+    _copy_if_not_exists(folder, fs_dest)
+
+
+@ensure_framework
+def copy_filestore(dbname: str, dbname_new: str) -> None:
+    fs_src = odoo.Config().filestore(dbname)
+    fs_dest = odoo.Config().filestore(dbname_new)
+    _copy_if_not_exists(fs_src, fs_dest)

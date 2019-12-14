@@ -15,6 +15,8 @@ import os
 import enum
 import sys
 
+from pathlib import Path
+
 try:
     from pythonjsonlogger import jsonlogger
 except ImportError:
@@ -68,8 +70,13 @@ def framework():
 
 
 def main(
-    framework_dir, config_dir, call_home, run_mode, log_level, projectversion_file
-):
+    framework_dir: Path,
+    config_dir: Path,
+    call_home: bool,
+    run_mode: RUNMODE,
+    log_level: int,
+    projectversion_file: Path,
+) -> None:
     """Provide the common cli entrypoint, initialize the dodoo python
     environment, load configuration and set up logging.
 
@@ -89,7 +96,7 @@ def main(
     import odoo as _framework
 
     _framework.dodoo_run_mode = run_mode
-    _framework.dodoo_project_version = projectversion_file.read().rstrip()
+    _framework.dodoo_project_version = projectversion_file.read_text().rstrip()
     _framework.dodoo_config = config
 
     odoo.Tools().resetlocale()
