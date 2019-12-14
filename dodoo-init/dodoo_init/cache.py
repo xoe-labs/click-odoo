@@ -8,14 +8,14 @@
 import contextlib
 import hashlib
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from dodoo.connections import PublicCursor
+from dodoo.connections import AutocommitConnection
 
 _log = logging.getLogger(__name__)
 
 
-class DbCache(PublicCursor):
+class DbCache(AutocommitConnection):
     """ Manage a cache of db templates.
 
     Templates are named prefix-YYYYmmddHHMM-hashsum, where
@@ -26,14 +26,14 @@ class DbCache(PublicCursor):
     HASH_SIZE = hashlib.sha1().digest_size * 2
     MAX_HASHSUM = "f" * HASH_SIZE
 
-    def __init__(self, dsn, prefix, dry=False):
-        super().__init__(dsn, dry)
+    def __init__(self, dsn, prefix):
+        super().__init__(dsn)
         self.prefix = prefix
         self.lock_id = self._make_lock_id()
 
     def __enter__(self):
-        cr = super().__enter__(self)
-        cr.autocommit(True)
+        super().__enter__()
+        self.cr = self.conn.cursor()
         return self
 
     def _make_lock_id(self):
@@ -184,10 +184,11 @@ class DbCache(PublicCursor):
 
     def trim_age(self, max_age):
         count = 0
+        max_trim = max_age + timedelta(minutes=1)
         with self._lock():
             pattern = self._make_pattern()
             max_name = self._make_pattern(
-                dt=datetime.utcnow() - max_age, hs=self.MAX_HASHSUM
+                dt=datetime.utcnow() - max_trim, hs=self.MAX_HASHSUM
             )
             self.cr.execute(
                 """

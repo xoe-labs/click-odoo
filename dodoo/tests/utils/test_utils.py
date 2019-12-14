@@ -1,11 +1,8 @@
 import pytest
-from psycopg2.extensions import make_dsn
-from pytest_postgresql import factories
 
 import dodoo.utils as utils
 import dodoo.utils.db as dbutils
 import dodoo.utils.odoo as odooutils
-from dodoo.interfaces import odoo
 
 
 class TestUtils:
@@ -25,11 +22,6 @@ class TestUtils:
         assert dummy() is None
 
 
-postgres = factories.postgresql_proc()
-pg_conn_main = factories.postgresql("postgres")
-pg_conn_test = factories.postgresql("postgres", db_name="test")
-
-
 class TestDbUtils:
     def test_maintenance_dsn(self, main_loaded):
         assert (
@@ -41,12 +33,6 @@ class TestDbUtils:
         assert "-U" in args
         assert "-p" in args
         assert "--no-password" in args
-
-    @pytest.fixture
-    def db(self, pg_conn_main, pg_conn_test, mocker):
-        dsn_params = pg_conn_main.info.dsn_parameters
-        mocker.patch("dodoo.utils.db._dsn_resolver", lambda _: make_dsn(**dsn_params))
-        yield pg_conn_test.info.dbname
 
     def test_db_exists_sql(self, db):
         assert dbutils.db_exists(db)
@@ -77,15 +63,6 @@ class TestDbUtils:
 
 
 class TestOdooUtils:
-    @pytest.fixture()
-    def fs(self, main_loaded):
-        dbname = "testdb"
-        fs = odoo.Config().filestore(dbname)
-        fs.mkdir(parents=True)
-        yield fs
-        if fs.exists():
-            fs.rmdir()
-
     def test_drop_filestore(self, fs):
         db = fs.name
         odooutils.drop_filestore(db)

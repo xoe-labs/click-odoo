@@ -15,6 +15,18 @@ class SchemaNotCreatedError(Exception):
     pass
 
 
+class AutocommitConnection:
+    def __init__(self, dsn):
+        self.dsn = dsn
+
+    def __enter__(self):
+        self.conn = psycopg2.connect(self.dsn)
+        self.conn.autocommit = True
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.conn.close()
+
+
 class SchemaCursor:
     def __init__(self, dsn, dry=False, schema=None):
         self.dsn = dsn

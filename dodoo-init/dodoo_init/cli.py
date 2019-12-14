@@ -6,7 +6,7 @@
 """This module implements the cli subcommand for dodoo init"""
 
 import click
-from dodoo_init import __version__, init as _init, trim as _trim_cache
+from dodoo_init import __version__, init as _init, trim_cache as _trim_cache
 
 from dodoo.cli import CONTEXT_SETTINGS, EPILOG
 

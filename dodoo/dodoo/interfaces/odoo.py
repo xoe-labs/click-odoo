@@ -7,6 +7,7 @@ Hence, maintainers have a single source of truth of it's usage.
 Consequent lazy loading of patchable properties ensures patchability.
 For consistency, never access the odoo namespace directly."""
 
+from contextlib import contextmanager
 from importlib import import_module
 from pathlib import Path
 
@@ -78,15 +79,23 @@ class Registry:
 
 
 class Environment:
+    @staticmethod
+    @contextmanager
+    def manage():
+        api = import_module("odoo.api")
+        with api.Environment.manage():
+            yield
+
+    @contextmanager
     def __new__(cls, cr, uid=None, context=None):
         if not uid:
             odoo = import_module("odoo")
             uid = odoo.SUPERUSER_ID
         if not context:
             context = {}
-        Environment = import_module("odoo.api.Environment")
+        api = import_module("odoo.api")
         with Environment.manage():
-            yield Environment(cr, uid, context)
+            yield api.Environment(cr, uid, context)
 
 
 class Cron:
@@ -155,15 +164,16 @@ class Modules:
         return self._r.load_information_from_description_file(module)
 
     def install_demo(self, dbname):
-        with Registry(dbname) as registry:
-            with registry.cursor() as cr:
-                # Creates an environment as side effect
+        registry = Registry(dbname)
+        with registry.cursor() as cr:
+            with Environment.manage():
+                # Creates an environment as side effect, therefore 'manage' it.
                 self._b.loading.force_demo(cr)
 
     def reflect(self, dbname):
-        with Registry(dbname) as registry:
-            with registry.cursor() as cr:
-                env = Environment(cr)
+        registry = Registry(dbname)
+        with registry.cursor() as cr:
+            with Environment(cr) as env:
                 env["ir.module.module"].update_list()
 
 

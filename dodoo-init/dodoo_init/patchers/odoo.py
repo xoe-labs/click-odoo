@@ -11,6 +11,5 @@ from ..interfaces import odoo
 
 # Inheriting order important
 class AttachmentStoragePatcher(odoo.Patchable, BasePatcher):
-    @staticmethod
-    def _storage():
+    def _storage(self):
         return lambda: "db"

@@ -68,13 +68,14 @@ def addons_digest(modules: List[str], with_demo: bool) -> bytes:
     """ Calculate digest of the source files of installable modules.
     Differenciate between demo and non-demo initializations."""
     h = hashlib.sha1()
-    h.update(f"!demo={with_demo:d}!")
+    h.update(f"!demo={with_demo:d}!".encode())
     for module in odooutils.expand_dependencies(modules):
         h.update(module.encode())
         module_path = odoo.Modules().module_path_from(module)
+        _log.debug(f"Content hashing module: '{module}'")
         for fpath in _walk(module_path):
             h.update(str(fpath).encode())
-            h.update(fpath.read_bytes())
+            h.update((module_path / fpath).read_bytes())
     return h.hexdigest()
 
 
@@ -105,7 +106,7 @@ def init(modules: List[str], with_demo: bool, no_cache: bool, database: str) -> 
             msg = f"New database '{database}' created from db cache."
             _log.info(msg)
         else:
-            AttachmentStoragePatcher.apply()
+            AttachmentStoragePatcher().apply()
             odoo_createdb(database, with_demo, modules)
             dbcache.add(database, digest)
             msg = f"Database '{database}' put in db cache."
@@ -117,14 +118,14 @@ def trim_cache(max_age: int, max_size: int) -> None:
     """
     dsn = dbutils.maintenance_dsn()
     with DbCache(dsn, CACHE_PREFIX) as dbcache:
-        if max_size:
+        if max_size is not None:
             count = dbcache.trim_size(max_size)
             if count:
                 msg = f"{count} database(s) cleared from cache (max-size)."
             else:
                 msg = f"No database cleared from cache (max-size)."
             _log.info(msg)
-        if max_age:
+        if max_age is not None:
             count = dbcache.trim_age(timedelta(days=max_age))
             if count:
                 msg = f"{count} database(s) cleared from cache (max-age)."

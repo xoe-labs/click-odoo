@@ -21,4 +21,4 @@ class Patchable:
     # #############################
 
     # odoo.addons.base
-    _storage = PProp("odoo.addons.base.models.ir_attachment:_storage")
+    _storage = PProp("odoo.addons.base.models.ir_attachment:IrAttachment._storage")
