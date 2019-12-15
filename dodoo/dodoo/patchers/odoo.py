@@ -117,11 +117,14 @@ class Patcher(odoo.Patchable, BasePatcher):
 
     @property
     def ad_paths(self):
-        class CustomList(list):
-            # Store them for significant reference used by patched `get_modules`
-            # to unwrap and reason about the patched scope it should return
-            db_scoped = self.OdooConfig.resolve_scoped_addons_dir()
+        db_scoped = self.OdooConfig.resolve_scoped_addons_dir()
 
+        class CustomList(list):
+            pass
+
+        # Store them for significant reference used by patched `get_modules`
+        # to unwrap and reason about the patched scope it should return
+        CustomList.db_scoped = db_scoped
         return CustomList([])
 
     @staticmethod

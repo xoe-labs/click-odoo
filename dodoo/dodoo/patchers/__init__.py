@@ -89,7 +89,8 @@ class BasePatcher:
 
     def _prop_predicate(self, member):
         if isinstance(member, property):
-            return True
+            name = member.fget.__name__
+            return bool(self.get_patchable_property_obj(name))
         return False
 
     def apply(self):
@@ -128,12 +129,12 @@ class BasePatcher:
             try:
                 patchable_prop = self.get_patchable_property_obj(attr, log=False)
                 if isinstance(candidate, property):
-                    setattr(Patchable(), attr, _cand(attr))
+                    setattr(Patchable(), attr, _cand(self))
                 else:
                     setattr(Patchable(), attr, _cand)
             except Exception:
                 msg = f"Patch {attr} not applied"
-                _log.ciritcal(msg)
+                _log.critical(msg)
                 raise PatchError(msg)
             else:
                 _log.info(f"{patchable_prop.obj_path} patched. ")
