@@ -195,7 +195,6 @@ class Patcher(odoo.Patchable, BasePatcher):
             #   parameters - we do it our way in dodoo
             return_db_scoped_paths = True
             dbuuid = None
-        frame.clear()  # cleare references for GC (memory management)
         # ###########
         # End inspect
         # ###########
