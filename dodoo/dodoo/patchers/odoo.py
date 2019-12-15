@@ -80,7 +80,7 @@ class Patcher(odoo.Patchable, BasePatcher):
         dsn = self.DbConfig.resolve_dsn(dbname)
         return dbname, parse_dsn(make_dsn(dsn, dbname=dbname, application_name="odoo"))
 
-    orig_db_connect = odoo.Patchable.db_connect
+    orig_db_connect = odoo.Patchable().db_connect
 
     def db_connect(self, dbname):
         reloaded = self.DbConfig.reload()
@@ -95,13 +95,13 @@ class Patcher(odoo.Patchable, BasePatcher):
             cr.execute(f"SET search_path TO odoo")
         return Connection
 
-    @BasePatcher.unlessFeature("call_home")
     @staticmethod
+    @BasePatcher.unlessFeature("call_home")
     def update_notification():
         return lambda: True
 
-    @BasePatcher.unlessFeature("install_remote_modules_via_rpc")
     @staticmethod
+    @BasePatcher.unlessFeature("install_remote_modules_via_rpc")
     def install_from_urls():
         return lambda: True
 

@@ -42,7 +42,7 @@ class BasePatcher:
         def decorator(fn):
             @wraps(fn)
             def decorated(*args, **kwargs):
-                fn(*args, **kwargs)
+                return fn(*args, **kwargs)
 
             decorated.onFeature = feature
             return decorated
@@ -56,55 +56,87 @@ class BasePatcher:
         def decorator(fn):
             @wraps(fn)
             def decorated(*args, **kwargs):
-                fn(*args, **kwargs)
+                return fn(*args, **kwargs)
 
             decorated.unlessFeature = feature
             return decorated
 
         return decorator
 
+    def get_patchable_property_obj(self, name, log=True):
+        Patchable = type(self).__mro__[1]
+        try:
+            candidate = Patchable.__getattribute__(Patchable, name)
+            if log:
+                _log.debug(f"{Patchable} got attribute '{name}'.")
+            if isinstance(candidate, PatchableProperty):
+                return candidate
+            else:
+                return None
+        except AttributeError:
+            if log:
+                _log.debug(f"{Patchable} got no attribute '{name}'.")
+            return None
+
+    def _predicate(self, member):
+        try:
+            name = member.__name__
+        except AttributeError:
+            return False
+        if name.startswith("__"):
+            return False
+        return bool(self.get_patchable_property_obj(name))
+
+    def _prop_predicate(self, member):
+        if isinstance(member, property):
+            return True
+        return False
+
     def apply(self):
-        patchable_interface_class = type(self).__mro__[1]
-        for attr, patch in inspect.getmembers(self, predicate=inspect.ismethod):
+        Patchable = type(self).__mro__[1]
+        members = inspect.getmembers(self, predicate=self._predicate)
+        members.extend(inspect.getmembers(type(self), predicate=self._prop_predicate))
+        if not members:
+            return
+        for attr, candidate in members:
+            isproperty = False
+            if isinstance(candidate, property):
+                isproperty = True
+            if not isproperty and attr != candidate.__name__:
+                # predicate function has only access to the member, not under
+                # which name it's registered
+                _log.debug(
+                    f"Attribute '{attr}' has assigned {candidate}. By chance, it "
+                    f"shares name ('{candidate.__name__}'') with "
+                    f"a patchable attribute of {Patchable}, but it's not a "
+                    "intented for patching. Skipping..."
+                )
+                continue
+            _cand = candidate.fget if isproperty else candidate
             # Feature flags
-            if hasattr(patch, "onFeature"):
-                if getattr(patch, "onFeature") not in self.features:
-                    _log.info(
-                        f"Skipping {attr} as feature '{attr.onFeature}' is "
-                        "not enabled."
-                    )
-                    continue
-            if hasattr(patch, "unlessFeature"):
-                if getattr(patch, "unlessFeature") in self.features:
-                    _log.info(
-                        f"Skipping {attr} as feature '{attr.unlessFeature}' is "
-                        "enabled."
-                    )
-                    continue
+            onFeature = getattr(_cand, "onFeature", None)
+            unlessFeature = getattr(_cand, "unlessFeature", None)
+            if onFeature and not self.features.get(onFeature, None):
+                msg = f"Skipping {attr} as feature '{onFeature}' is " "not enabled."
+                _log.info(msg)
+                continue
+            if unlessFeature and self.features.get(unlessFeature, None):
+                msg = f"Skipping {attr} as feature '{unlessFeature}' is " "enabled."
+                _log.info(msg)
+                continue
             #
             try:
-                candidate = patchable_interface_class.__getattribute__(
-                    patchable_interface_class, attr
-                )
-            except AttributeError:
-                _log.debug(
-                    f"Skipping {attr}: not defined on patchable interface class."
-                )
-                continue
-            if not isinstance(candidate, PatchableProperty):
-                _log.debug(
-                    f"Skipping {attr}: not a PatchableProperty on the patchable "
-                    "interface base class."
-                )
-                continue
-            try:
-                setattr(patchable_interface_class(), attr, patch)
+                patchable_prop = self.get_patchable_property_obj(attr, log=False)
+                if isinstance(candidate, property):
+                    setattr(Patchable(), attr, _cand(attr))
+                else:
+                    setattr(Patchable(), attr, _cand)
             except Exception:
                 msg = f"Patch {attr} not applied"
                 _log.ciritcal(msg)
                 raise PatchError(msg)
             else:
-                _log.info(f"{candidate.obj_path} patched. ")
+                _log.info(f"{patchable_prop.obj_path} patched. ")
 
 
 class PatchableProperty(object):
