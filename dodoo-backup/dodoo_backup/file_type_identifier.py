@@ -8,18 +8,18 @@
 
 
 magic_dict = {
-    "\x50\x4b\x03\x04": "zip",
-    "\x1f\x8b\x08": "gztar",
-    "\x42\x5a\x68": "bztar",
-    "\x75\x73\x74\x61\x72": "tar",
-    "\xfd\x37\x7a\x58\x5a\x00": "xztar",
+    b"\x50\x4b\x03\x04": "zip",
+    b"\x1f\x8b\x08": "gztar",
+    b"\x42\x5a\x68": "bztar",
+    b"\x75\x73\x74\x61\x72": "tar",
+    b"\xfd\x37\x7a\x58\x5a\x00": "xztar",
 }
 
 max_len = max(len(x) for x in magic_dict)
 
 
 def file_type(filename):
-    with open(filename) as f:
+    with open(filename, "rb") as f:
         file_start = f.read(max_len)
     for magic, filetype in magic_dict.items():
         if file_start.startswith(magic):

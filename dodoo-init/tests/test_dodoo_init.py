@@ -21,32 +21,25 @@ def test_addons_digest(main_loaded, caplog):
 
 def test_odoo_createdb_init_and_cache(db, newdb, newdb2, main_loaded, caplog):
     caplog.set_level(logging.INFO)
-    modules = ["base"]
-    with_demo = True
-    no_cache = False
-    init(modules, with_demo, no_cache, newdb)
+    init(modules=["base"], with_demo=True, no_cache=False, database=newdb)
     assert "loading base" in caplog.text
     assert f"New database '{newdb}' created." in caplog.text
     assert f"Demo data in '{newdb}' loaded." in caplog.text
     assert f"Database '{newdb}' put in db cache." in caplog.text
     caplog.clear()
-    init(modules, with_demo, no_cache, newdb2)
+    init(modules=["base"], with_demo=True, no_cache=False, database=newdb2)
     assert "loading base" not in caplog.text
     assert f"New database '{newdb2}' created." not in caplog.text
     assert f"Demo data in '{newdb2}' loaded." not in caplog.text
     assert f"New database '{newdb2}' created from db cache." in caplog.text
     caplog.clear()
-    max_age = None
-    max_size = 0
-    trim_cache(max_age, max_size)
+    trim_cache(max_age=None, max_size=0)
     # Trimming with max_size ...
     assert f"1 database(s) cleared from cache (max-size)." in caplog.text
     # ... yet, max_age codepath should NOT have executed (max_age = None).
     assert "(max-age)." not in caplog.text
     caplog.clear()
-    max_age = 0
-    max_size = None
-    trim_cache(max_age, max_size)
+    trim_cache(max_age=0, max_size=None)
     # Nothing left to trim ...
     assert f"No database cleared from cache (max-age)." in caplog.text
     # ... yet, max_size codepath should NOT have executed (max_size = None).

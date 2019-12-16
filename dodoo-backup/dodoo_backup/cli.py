@@ -33,8 +33,8 @@ from dodoo.cli import CONTEXT_SETTINGS, EPILOG
 @click.version_option(version=__version__)
 def backup(*args, **kwargs):
     if not kwargs["dest"]:
-        with Path(tempfile.TemporaryDirectory()) as dir:
-            kwargs["dest"] = dir
+        with tempfile.TemporaryDirectory() as dir:
+            kwargs["dest"] = Path(dir)
             archive = _backup(*args, **kwargs)
             shutil.copyfileobj(archive, sys.stdout)
     else:

@@ -22,6 +22,8 @@ pytest-datadir = "^1.3"
 # sudo apt-get install libsasl2-dev python-dev libldap2-dev libssl-dev libpq-dev
 odoo = {path = "../.odoo"}
 dodoo = {path = "../dodoo"}
+dodoo_init = {path = "../dodoo-init"}
+pytest-postgresql = "^2.2.1"
 
 [tool.poetry.plugins."dodoo.cli_plugins"]
 copy = "dodoo_copy.cli:copy"
