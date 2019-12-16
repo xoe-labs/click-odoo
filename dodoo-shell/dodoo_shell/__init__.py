@@ -16,11 +16,25 @@ from contextlib import contextmanager
 import dodoo
 from dodoo.interfaces import odoo
 
+from pathlib import Path
+
+from typing import Optional, List
+
 _log = logging.getLogger(__name__)
 
 
+class ScriptCommitsDuringDryRunError(Exception):
+    pass
+
+
+def raise_on_commit():
+    raise ScriptCommitsDuringDryRunError()
+
+
 @contextmanager
-def environment(database, uid=None, dry_run=False):
+def environment(
+    database: str, uid: int = None, dry_run: bool = False, interactive: bool = False
+) -> dict:
     global_vars = {"odoo": dodoo.framework()}
     if not database:
         msg = "No database set; load odoo namespace only."
@@ -42,17 +56,41 @@ def environment(database, uid=None, dry_run=False):
                 )
                 _log.warning(msg)
                 _log.debug(f"Exception was: {e}")
-            env = odoo.Environment(cr, uid=uid, context=ctx)
-            global_vars.update(env=env, self=env.user)
-            yield global_vars
+
             if dry_run:
-                cr.rollback()
-            else:
-                cr.commit()
+                cr.commit = raise_on_commit
+            try:
+                with odoo.Environment(cr, uid=uid, context=ctx) as env:
+                    global_vars.update(env=env, self=env.user)
+                    yield global_vars
+            finally:
+                cr.rollback() if (dry_run or interactive) else cr.commit()
         odoo.Database().close_all()
 
 
-def shell(interactive, shell_interface, dry_run, uid, database, script, script_args):
+@contextmanager
+def args(script_args):
+    orig_sys_args = sys.argv
+    sys.argv[1:] = script_args
+    yield
+    sys.argv[:] = orig_sys_args
+
+
+def _from_stdin(global_vars):
+    sys.argv[:] = [""]
+    global_vars["__name__"] = "__main__"
+    exec(sys.stdin.read(), global_vars)
+
+
+def shell(
+    interactive: bool,
+    shell_interface: Optional[str],
+    dry_run: bool,
+    uid: Optional[int],
+    database: Optional[str],
+    script: Optional[Path],
+    script_args: Optional[List[str]],
+) -> None:
     """Run a python script in an initialized Odoo environment. The script
     has access to a 'odoo', 'env' and 'self' (current user) globals.
 
@@ -68,18 +106,16 @@ def shell(interactive, shell_interface, dry_run, uid, database, script, script_a
         msg = f"parameter(s) {','.join(params)} require 'database' parameter."
         _log.error(msg)
 
-    with environment(database, uid, dry_run) as global_vars:
+    with environment(database, uid, dry_run, interactive) as global_vars:
         if script:
-            sys.argv[2:] = script_args
-            global_vars = runpy.run_path(
-                script, init_globals=global_vars, run_name="__main__"
-            )
+            with args(script_args):
+                global_vars = runpy.run_path(
+                    script, init_globals=global_vars, run_name="__main__"
+                )
         if not script or interactive:
             from . import console
 
             if console._isatty(sys.stdin):
                 console.PatchedShell.console(global_vars, shell_interface)
             else:
-                sys.argv[:] = [""]
-                global_vars["__name__"] = "__main__"
-                exec(sys.stdin.read(), global_vars)
+                _from_stdin(global_vars)
