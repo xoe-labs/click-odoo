@@ -187,14 +187,12 @@ class Database:
 
 class Config:
     def __init__(self):
-        self._config = None
+        self._configmodule = import_module("odoo.tools.config")
         self._conf = None
 
     @property
     def config(self):
-        if not self._config:
-            self._config = import_module("odoo.tools.config").config
-        return self._config
+        return self._configmodule.config
 
     @property
     def conf(self):
@@ -203,7 +201,9 @@ class Config:
         return self._conf
 
     def defaults(self):
-        self.config._parse_config()
+        fresh_config_obj = self._configmodule.configmanager()
+        fresh_config_obj._parse_config()
+        self._configmodule.config = fresh_config_obj
 
     def filestore(self, dbname):
         return Path(self.config.filestore(dbname))

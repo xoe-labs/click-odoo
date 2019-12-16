@@ -65,6 +65,10 @@ class TestOdooInterface:
         odoo.Config().config
         odoo.Config().conf
         odoo.Config().defaults()
+        # Repetitive call without error
+        # Odoo's _parse_config() is not idempotent and only works on a freshly
+        # initialized config object
+        odoo.Config().defaults()
         odoo.Config().filestore("dbname")
 
     def test_patchable(self):
