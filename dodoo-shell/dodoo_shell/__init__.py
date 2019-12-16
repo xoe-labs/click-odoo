@@ -43,20 +43,8 @@ def environment(
     else:
         registry = odoo.Registry(database)
         with registry.cursor() as cr:
-            try:
-                ctx = odoo.Environment(cr, uid=uid)["res.users"].context_get()
-            except Exception as e:
-                ctx = {"lang": "en_US"}
-                # this happens, for instance, when there are new
-                # fields declared on res_partner which are not yet
-                # in the database (before -u)
-                msg = (
-                    "Could not obtain a user context, continuing "
-                    "anyway with a default context."
-                )
-                _log.warning(msg)
-                _log.debug(f"Exception was: {e}")
-
+            with odoo.Environment(cr, uid=uid) as env:
+                ctx = env["res.users"].context_get()
             if dry_run:
                 cr.commit = raise_on_commit
             try:
