@@ -43,6 +43,7 @@ def environment(
     else:
         registry = odoo.Registry(database)
         with registry.cursor() as cr:
+            orig_commit = cr.commit
             with odoo.Environment(cr, uid=uid) as env:
                 ctx = env["res.users"].context_get()
             if dry_run:
@@ -51,8 +52,12 @@ def environment(
                 with odoo.Environment(cr, uid=uid, context=ctx) as env:
                     global_vars.update(env=env, self=env.user)
                     yield global_vars
-            finally:
+            except Exception as e:
+                cr.rollback()
+                raise e
+            else:
                 cr.rollback() if (dry_run or interactive) else cr.commit()
+                cr.commit = orig_commit  # Odoo commits (again) leaving context
         odoo.Database().close_all()
 
 
@@ -65,9 +70,9 @@ def args(script_args):
 
 
 def _from_stdin(global_vars):
-    sys.argv[:] = [""]
     global_vars["__name__"] = "__main__"
-    exec(sys.stdin.read(), global_vars)
+    with args([""]):
+        exec(sys.stdin.read(), global_vars)
 
 
 def shell(
@@ -104,6 +109,8 @@ def shell(
             from . import console
 
             if console._isatty(sys.stdin):
-                console.PatchedShell.console(global_vars, shell_interface)
+                console.PatchedShell.interact(
+                    global_vars, preferred_shell=shell_interface
+                )
             else:
                 _from_stdin(global_vars)

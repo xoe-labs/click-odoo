@@ -9,4 +9,4 @@ admin.login = "newadmin"
 
 env.cr.commit()
 
-raise Exception()
+raise RuntimeError("scripterror")

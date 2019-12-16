@@ -7,4 +7,4 @@ self = self  # noqa
 admin = env["res.users"].search([("login", "=", "admin")])
 admin.login = "newadmin"
 
-raise Exception()
+raise RuntimeError("scripterror")

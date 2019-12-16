@@ -127,20 +127,24 @@ def test_rollback_in_script(capsys, db, scripts):
     assert "script - output:" in captured.out
 
 
-def test_interactive_without_commit_rollback(capsys, db, scripts):
+def test_interactive_without_commit_rollback(capsys, db, scripts, mocker):
     """ test rollback in interactive mode without manual commit """
+    mock = mocker.patch("dodoo_shell._from_stdin")
     script = scripts / "with_database.py"
     shell(**dict(params, interactive=True, database=db, script=script))
+    assert mock.call_count == 1
     captured = capsys.readouterr()
     assert "script - output:" in captured.out
     assert "admin->newadmin" in captured.out
     assert has_admin(db)
 
 
-def test_interactive_with_manual_commit(capsys, db, scripts):
+def test_interactive_with_manual_commit(capsys, db, scripts, mocker):
     """ test rollback in interactive mode without manual commit """
+    mock = mocker.patch("dodoo_shell._from_stdin")
     script = scripts / "with_commit.py"
     shell(**dict(params, interactive=True, database=db, script=script))
+    assert mock.call_count == 1
     captured = capsys.readouterr()
     assert "script - output:" in captured.out
     assert "admin->newadmin" in captured.out
@@ -150,34 +154,41 @@ def test_interactive_with_manual_commit(capsys, db, scripts):
 def test_script_raise_rollback(capsys, db, scripts):
     """ test rollback when script raises """
     script = scripts / "with_raise.py"
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError) as excinfo:
         shell(**dict(params, database=db, script=script))
-    captured = capsys.readouterr()
-    assert "script - output:" in captured.out
+    assert "scripterror" in str(excinfo.value)
     assert has_admin(db)
 
 
 def test_script_raise_commit(capsys, db, scripts):
     """ test rollback when script raises """
     script = scripts / "with_commit_raise.py"
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError) as excinfo:
         shell(**dict(params, database=db, script=script))
-    captured = capsys.readouterr()
-    assert "script - output:" in captured.out
+    assert "scripterror" in str(excinfo.value)
     assert has_newadmin(db)
 
 
-def test_console():
-    pass
+def test_console_no_preferred_shell(capsys, mocker):
+    _isatty = mocker.patch("dodoo_shell.console._isatty")
+    _isatty.return_value = True
+    mock = mocker.patch("dodoo_shell.console.PatchedShell.interact")
+    shell(**dict(params))
+    mock.assert_called_once_with({"odoo": None}, preferred_shell=None)
 
 
-def test_stdin():
-    pass
+def test_console_with_preferred_shell(capsys, mocker):
+    _isatty = mocker.patch("dodoo_shell.console._isatty")
+    _isatty.return_value = True
+    mock = mocker.patch("dodoo_shell.console.PatchedShell.interact")
+    shell(**dict(params, shell_interface="ipython"))
+    mock.assert_called_once_with({"odoo": None}, preferred_shell="ipython")
 
 
-# def test_write_stdin_defaulttx(capsys, db, scripts):
-#     script = scripts / "without_database.py"
-#     script = os.path.join(here, "scripts", "script4.py")
-#     cmd = [script, "-d", odoodb, "<", script]
-#     subprocess.check_call(" ".join(cmd), shell=True)
-#     _assert_testparam_present(odoodb, "testvalue")
+def test_stdin(capsys, mocker):
+    mock = mocker.patch("dodoo_shell.sys.stdin")
+    mock.read.return_value = "print('hello world')"
+    shell(**dict(params))
+    assert mock.read.call_count == 1
+    captured = capsys.readouterr()
+    assert "hello world" in captured.out
