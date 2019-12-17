@@ -1,5 +1,3 @@
-#!/usr/bin/env dodoo shell
-
 odoo = odoo  # noqa
 env = env  # noqa
 self = self  # noqa

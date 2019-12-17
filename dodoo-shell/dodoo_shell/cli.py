@@ -27,8 +27,10 @@ from dodoo.cli import CONTEXT_SETTINGS, EPILOG
     "values are ipython, ptpython, bpython, python. If not "
     "provided they are tried in this order.",
 )
-@click.option("--uid", "-u", help="Specify a user id (requires database).")
-@click.option("--dry-run", help="Roll back and don't commit (requires database)")
+@click.option("--uid", "-u", type=int, help="Specify a user id (requires database).")
+@click.option(
+    "--dry-run", is_flag=True, help="Roll back and don't commit (requires database)"
+)
 @click.argument("database", required=False, type=str)
 @click.argument(
     "script", required=False, type=click_pathlib.Path(exists=True, dir_okay=False)
@@ -36,7 +38,7 @@ from dodoo.cli import CONTEXT_SETTINGS, EPILOG
 @click.argument("script-args", nargs=-1)
 @click.version_option(version=__version__)
 def shell(*args, **kwargs):
-    if not kwargs.get("database") and kwargs.get("dry_run") or kwargs.get("uid"):
+    if not kwargs.get("database") and (kwargs.get("dry_run") or kwargs.get("uid")):
         opts = []
         if kwargs.get("dry_run"):
             opts.append("--dry-run")

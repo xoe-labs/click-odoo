@@ -90,7 +90,7 @@ def shell(
     If no script is provided, the script is read from stdin or an interactive
     console is started if stdin appears to be a terminal."""
 
-    if not database and dry_run or uid:
+    if not database and (dry_run or uid):
         params = []
         if dry_run:
             params.append("dry_run")
