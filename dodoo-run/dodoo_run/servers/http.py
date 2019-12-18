@@ -24,7 +24,7 @@ import dodoo.interfaces.odoo as odoo
 _log = logging.getLogger(__name__)
 
 
-def Middleware(prod):
+def middleware(prod):
     return [
         Middleware(HTTPSRedirectMiddleware),
         Middleware(SessionMiddleware),
@@ -34,12 +34,12 @@ def Middleware(prod):
     ] + ([Middleware(PrometheusMiddleware)] if prod else [])
 
 
-def Routes(prod):
+def routes(prod):
     return [Route("/", endpoint=odoo.WSGI().app)] + (
         [Route("/metrics", endpoint=metrics)] if prod else []
     )
 
 
 def app(prod: bool) -> ASGIApp:
-    app = Starlette(middleware=Middleware(prod), routes=Routes(prod), debug=not prod)
+    app = Starlette(middleware=middleware(prod), routes=routes(prod), debug=not prod)
     return app

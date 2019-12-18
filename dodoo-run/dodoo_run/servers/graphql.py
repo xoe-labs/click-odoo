@@ -32,7 +32,7 @@ except ImportError:  # pragma: nocover
 _log = logging.getLogger(__name__)
 
 
-def Middleware(prod):
+def middleware(prod):
     return [
         Middleware(HTTPSRedirectMiddleware),
         Middleware(SessionMiddleware),
@@ -42,7 +42,7 @@ def Middleware(prod):
     ] + ([Middleware(PrometheusMiddleware)] if prod else [])
 
 
-def Routes(graphql_app, prod):
+def routes(graphql_app, prod):
     return [
         Route("/graphql", endpoint=graphql_app),
         WebSocketRoute("/graphql", endpoint=graphql_app),
@@ -52,5 +52,5 @@ def Routes(graphql_app, prod):
 def app(schema: "graphene.Schema", prod: bool) -> ASGIApp:
     s = importlib.import_module(schema)
     g = requires("authenticated")(GraphQL(s.schema, debug=not prod))
-    app = Starlette(middleware=Middleware(prod), routes=Routes(g, prod), debug=not prod)
+    app = Starlette(middleware=middleware(prod), routes=routes(g, prod), debug=not prod)
     return app
