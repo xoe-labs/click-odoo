@@ -7,7 +7,6 @@
 import importlib
 import logging
 
-import uvicorn
 from dodoo_run.middleware.odoo import (
     OdooBasicAuthBackendAsync,
     OdooEnvironmentMiddlewareAsync,
@@ -19,43 +18,39 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.routing import Route, WebSocketRoute
+from starlette.types import ASGIApp
+from starlette_prometheus import PrometheusMiddleware, metrics
 from strawberry.asgi import GraphQL
 
-from dodoo import RUN_MODE, framework
+try:
+    import graphene
+except ImportError:  # pragma: nocover
+    graphene = None  # type: ignore
+
 
 _log = logging.getLogger(__name__)
 
 
-def graphql(host, port, schema):
-
-    middleware = [
+def Middleware(prod):
+    return [
         Middleware(HTTPSRedirectMiddleware),
         Middleware(SessionMiddleware),
         Middleware(AuthenticationMiddleware, backend=OdooBasicAuthBackendAsync()),
         Middleware(OdooEnvironmentMiddlewareAsync),
         Middleware(GZipMiddleware, minimum_size=500),
-    ]
-    schema_module = importlib.import_module(schema)
+    ] + ([Middleware(PrometheusMiddleware)] if prod else [])
 
-    global app, server
-    if framework.dodoo_run_mode == RUN_MODE.Develop:
-        app = Starlette(middleware=middleware, debug=True)
-        graphql_app = requires("authenticated")(
-            GraphQL(schema_module.schema, debug=True)
-        )
-    else:
-        app = Starlette(middleware=middleware)
-        graphql_app = requires("authenticated")(GraphQL(schema_module.schema))
 
-    # pip install starlette-prometheus
-    try:
-        from starlette_prometheus import metrics, PrometheusMiddleware
-    except ImportError:
-        pass
-    else:
-        app.add_middleware(PrometheusMiddleware)
-        app.add_route("/metrics/", metrics)
+def Routes(graphql_app, prod):
+    return [
+        Route("/graphql", endpoint=graphql_app),
+        WebSocketRoute("/graphql", endpoint=graphql_app),
+    ] + ([Route("/metrics", endpoint=metrics)] if prod else [])
 
-    app.add_route("/graphql", graphql_app)
-    app.add_websocket_route("/graphql", graphql_app)
-    uvicorn.run(app, host=host, port=port, log_level="error")
+
+def app(schema: "graphene.Schema", prod: bool) -> ASGIApp:
+    s = importlib.import_module(schema)
+    g = requires("authenticated")(GraphQL(s.schema, debug=not prod))
+    app = Starlette(middleware=Middleware(prod), routes=Routes(g, prod), debug=not prod)
+    return app

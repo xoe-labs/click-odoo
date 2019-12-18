@@ -12,10 +12,6 @@ class TestOdooInterface:
         with pytest.raises(psycopg2.OperationalError):
             odoo.Authentication.authenticate("db", "login", "pwd")
 
-    def test_logging(self):
-        odoo.Logging().ColoredPerfFilter
-        odoo.Logging().PerfFilter
-
     def test_wsgi(self):
         odoo.WSGI().app
 

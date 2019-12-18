@@ -40,19 +40,6 @@ class Cli:
         return self._r.shell.Shell
 
 
-class Logging:
-    def __init__(self):
-        self._r = import_module("odoo.netsvc")
-
-    @property
-    def ColoredPerfFilter(self):
-        return self._r.ColoredPerfFilter
-
-    @property
-    def PerfFilter(self):
-        return self._r.PerfFilter
-
-
 class WSGI:
     def __init__(self):
         self._r = import_module("odoo.service.wsgi_server")

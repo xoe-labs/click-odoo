@@ -123,19 +123,13 @@ def main(
             },
             secondary_log_colors={"message": {"ERROR": "red", "CRITICAL": "red"}},
         )
-        perf_filter = odoo.Logging().ColoredPerfFilter()
     elif jsonlogger:
         formatter = JSONFormatter(logformat)
-        perf_filter = odoo.Logging().PerfFilter()
     else:
         formatter = DBFormatter(logformat)
-        perf_filter = odoo.Logging().PerfFilter()
 
     handler.setFormatter(formatter)
     logging.getLogger().addHandler(handler)
-    # TODO: https://www.appdynamics.com/blog/engineering/
-    # a-performance-analysis-of-python-wsgi-servers-part-2/
-    logging.getLogger("werkzeug").addFilter(perf_filter)
 
     config.Odoo.apply_log_handler_to(logging)
 

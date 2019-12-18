@@ -13,34 +13,33 @@ from . import (
     cron as _cron,
     graphql as _graphql,
     http as _http,
-    run as _run,
+    queue as _queue,
 )
 
 
 @click.group()
-@click.option("-s", "--stateless", is_flag=True)
-def run(*args, **kwargs):
-    _run(*args, **kwargs)
+def run():
+    pass
 
 
 @run.command()
-@click.option("-h", "--host", default="0.0.0.0", type=str)
-@click.option("-p", "--port", default=8000, type=int)
+@click.argument("addr", default="0.0.0.0", type=str)
+@click.argument("port", default=8069, type=int)
 def http(*args, **kwargs):
     _http(*args, **kwargs)
 
 
 @run.command()
-@click.option("-h", "--host", default="0.0.0.0", type=str)
-@click.option("-p", "--port", default=8000, type=int)
+@click.argument("host", default="0.0.0.0", type=str)
+@click.argument("addr", default=8072, type=int)
 def bus(*args, **kwargs):
     _bus(*args, **kwargs)
 
 
 @run.command()
-@click.option("-h", "--host", default="0.0.0.0", type=str)
-@click.option("-p", "--port", default=8075, type=int)
 @click.argument("schema", type=str)
+@click.argument("addr", default="0.0.0.0", type=str)
+@click.argument("port", default=8075, type=int)
 def graphql(*args, **kwargs):
     _graphql(*args, **kwargs)
 
@@ -48,6 +47,11 @@ def graphql(*args, **kwargs):
 @run.command()
 def cron(*args, **kwargs):
     _cron(*args, **kwargs)
+
+
+@run.command()
+def queue(*args, **kwargs):
+    _queue(*args, **kwargs)
 
 
 if __name__ == "__main__":  # pragma: no cover

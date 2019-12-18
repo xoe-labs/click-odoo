@@ -2,10 +2,8 @@
 # Created By : David Arnold
 # Part of    : xoe-labs/dodoo
 # =============================================================================
-"""This package implements the dodoo suck-less odoo server"""
+"""This package implements the dodoo suck-less (background) workers"""
 
-
-__version__ = "0.0.1"
 
 import logging
 import time
@@ -13,36 +11,6 @@ import threading
 import dodoo.interfaces.odoo as odoo
 
 _log = logging.getLogger(__name__)
-
-# ===================
-# Implementation
-# ===================
-
-
-def run(stateless):
-    # Logic that implements "stateless"
-    pass
-
-
-def http(*args, **kwargs):
-    # Only import the namespace + dependencies, if used
-    from .http import http
-
-    http(*args, **kwargs)
-
-
-def bus(*args, **kwargs):
-    # Only import the namespace + dependencies, if used
-    from .bus import bus
-
-    bus(*args, **kwargs)
-
-
-def graphql(*args, **kwargs):
-    # Only import the namespace + dependencies, if used
-    from .graphql import graphql
-
-    graphql(*args, **kwargs)
 
 
 def cron():
@@ -57,4 +25,7 @@ def cron():
                 _log.warning(
                     f"running cron jobs on {dbname} raised an Exception:", exc_info=True
                 )
-    pass
+
+
+def queue():
+    ...

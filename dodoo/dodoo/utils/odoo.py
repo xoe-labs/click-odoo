@@ -24,7 +24,7 @@ class ModuleNotFound(Exception):
 
 @ensure_framework
 def expand_dependencies(modules, include_auto_install=True):
-    """ Given a set od modules, returns a sorted list of all transitive
+    """ Given a set of modules, returns a sorted list of all transitive
     dependencies. By default, `auto_install = True`  modules are included, too.
     """
     odoo.Modules().initialize_sys_path()
