@@ -31,6 +31,7 @@ from ._errors import (
 _log = logging.getLogger(__name__)
 
 DEFAULT_ODOOADMINPASSWORD_FILE: str = "/run/secrets/adminpasswd"
+DEFAULT_SESSION_ENCRYPTION_KEY_FILE: str = "/run/secrets/sessionencryptionkey"
 DEFAULT_PGPASS_FILE: str = "/run/secrets/pgpass"
 DEFAULT_SMTPUSER_FILE: str = "/run/secrets/smtpuser"
 DEFAULT_SMTPPASSWORD_FILE: str = "/run/secrets/smtppassword"

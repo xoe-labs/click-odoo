@@ -23,6 +23,8 @@ from starlette.types import ASGIApp
 from starlette_prometheus import PrometheusMiddleware, metrics
 from strawberry.asgi import GraphQL
 
+from ._common import GZipMiddlewareArgs, SessionMiddlewareArgs
+
 try:
     import graphene
 except ImportError:  # pragma: nocover
@@ -35,10 +37,10 @@ _log = logging.getLogger(__name__)
 def middleware(prod):
     return [
         Middleware(HTTPSRedirectMiddleware),
-        Middleware(SessionMiddleware),
+        Middleware(SessionMiddleware, **SessionMiddlewareArgs),
         Middleware(AuthenticationMiddleware, backend=OdooBasicAuthBackendAsync()),
         Middleware(OdooEnvironmentMiddlewareAsync),
-        Middleware(GZipMiddleware, minimum_size=500),
+        Middleware(GZipMiddleware, **GZipMiddlewareArgs),
     ] + ([Middleware(PrometheusMiddleware)] if prod else [])
 
 

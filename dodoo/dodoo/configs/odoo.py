@@ -75,6 +75,10 @@ class OdooConfig(BaseConfig):
         def admin_passwd(self):
             return read_secret("ODOOADMINPASSWORD_FILE")
 
+        @property
+        def session_encryption_key(self):
+            return read_secret("SESSION_ENCRYPTION_KEY_FILE")
+
     Sec = Sec()
     # fmt: on
 
@@ -174,3 +178,6 @@ class OdooConfigDevelop(OdooConfigProd):
     _dev_mode = lambda: ["pdb", "reload", "qweb", "xml"]  # noqa: E731
     list_db: bool = True
     dev_mode: DevFlags = field(default_factory=_dev_mode)
+    # Create with https://github.com/FiloSottile/mkcert
+    ssl_keyfile: PathLike = None
+    ssl_certfile: PathLike = None

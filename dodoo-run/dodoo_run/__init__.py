@@ -11,6 +11,8 @@ import logging
 import enum
 import dodoo
 
+from pathlib import Path
+
 from dodoo import RUN_MODE
 
 _log = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ def _is_dev():
     return dodoo.framework().dodoo_run_mode == RUN_MODE.Develop
 
 
-def http(host, port):
+def http(host: str, port: int) -> None:
     from .server import server
     from .server.http import app as _app
 
@@ -37,7 +39,7 @@ def http(host, port):
     server(app, host, port, prod=not is_dev)
 
 
-def bus(host, port):
+def bus(host: str, port: int) -> None:
     from .server import server
     from .server.bus import app as _app
 
@@ -46,7 +48,7 @@ def bus(host, port):
     server(app, host, port, prod=not is_dev)
 
 
-def graphql(host, port, schema):
+def graphql(schema: Path, host: str, port: int) -> None:
     from .server import server
     from .server.graphql import app as _app
 
@@ -55,13 +57,13 @@ def graphql(host, port, schema):
     server(app, host, port, prod=not is_dev)
 
 
-def cron():
+def cron() -> None:
     from .workers import cron as _cron
 
     _cron()
 
 
-def queue():
+def queue() -> None:
     from .workers import queue as _queue
 
     _queue()

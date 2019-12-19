@@ -195,6 +195,9 @@ class Config:
     def filestore(self, dbname):
         return Path(self.config.filestore(dbname))
 
+    def session_dir(self):
+        return Path(self.config.session_dir)
+
 
 class Patchable:
 

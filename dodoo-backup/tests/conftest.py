@@ -19,6 +19,9 @@ def environ(tmp_path_factory) -> None:
     admin_passwd = secrets / "admin"
     admin_passwd.write_text("admin-pwd")
     admin_passwd.chmod(0o500)
+    session_encryption_key = secrets / "sessionencryptionkey"
+    session_encryption_key.write_text("secret-key")
+    session_encryption_key.chmod(0o500)
     smtpuser = secrets / "smtpuser"
     smtpuser.write_text("smtp-user")
     smtpuser.chmod(0o500)
@@ -26,6 +29,7 @@ def environ(tmp_path_factory) -> None:
     smtppwd.write_text("smtp-pwd")
     smtppwd.chmod(0o500)
     os.environ.update(ODOOADMINPASSWORD_FILE=str(admin_passwd))
+    os.environ.update(SESSION_ENCRYPTION_KEY_FILE=str(session_encryption_key))
     os.environ.update(SMTPUSER_FILE=str(smtpuser))
     os.environ.update(SMTPPASSWORD_FILE=str(smtppwd))
     secrets.chmod(0o500)

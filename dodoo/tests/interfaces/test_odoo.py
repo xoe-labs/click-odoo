@@ -66,6 +66,7 @@ class TestOdooInterface:
         # initialized config object
         odoo.Config().defaults()
         odoo.Config().filestore("dbname")
+        odoo.Config().session_dir()
 
     def test_patchable(self):
         odoo.Modules().initialize_sys_path()

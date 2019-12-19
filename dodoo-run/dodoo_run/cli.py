@@ -7,6 +7,7 @@
 
 
 import click
+import click_pathlib
 
 from . import (
     bus as _bus,
@@ -19,6 +20,9 @@ from . import (
 
 @click.group()
 def run():
+    # TODO: Ideas ...
+    # ... Patcher feature-flag to use athenapdf microservice instead of wkhtmltopdf
+    #
     pass
 
 
@@ -37,7 +41,9 @@ def bus(*args, **kwargs):
 
 
 @run.command()
-@click.argument("schema", type=str)
+@click.argument(
+    "schema", type=click_pathlib.Path(dir_okay=False, exists=True, resolve_path=True)
+)
 @click.argument("addr", default="0.0.0.0", type=str)
 @click.argument("port", default=8075, type=int)
 def graphql(*args, **kwargs):

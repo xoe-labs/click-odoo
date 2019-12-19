@@ -6,11 +6,9 @@
 
 import logging
 
-from dodoo_run.middleware.odoo import OdooBasicAuthBackendAsync
+from dodoo_run.middleware.globalscope import GlobalScopeAccessorMiddleware
 from starlette.applications import Starlette
-from starlette.authentication import requires
 from starlette.middleware import Middleware
-from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -21,16 +19,18 @@ from starlette_prometheus import PrometheusMiddleware, metrics
 
 import dodoo.interfaces.odoo as odoo
 
+from ._common import GZipMiddlewareArgs, SessionMiddlewareArgs
+
 _log = logging.getLogger(__name__)
 
 
 def middleware(prod):
     return [
         Middleware(HTTPSRedirectMiddleware),
-        Middleware(SessionMiddleware),
-        Middleware(AuthenticationMiddleware, backend=OdooBasicAuthBackendAsync()),
-        Middleware(GZipMiddleware, minimum_size=500),
+        Middleware(SessionMiddleware, **SessionMiddlewareArgs),
         Middleware(WSGIMiddleware, workers=1),
+        Middleware(GZipMiddleware, **GZipMiddlewareArgs),
+        Middleware(GlobalScopeAccessorMiddleware),
     ] + ([Middleware(PrometheusMiddleware)] if prod else [])
 
 
