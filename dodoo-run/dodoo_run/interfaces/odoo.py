@@ -32,5 +32,9 @@ class Patchable:
     # #############################
 
     # odoo.http
-    session_gc = PProp("odoo.http:session_gc")
     session_store = PProp("odoo.http:Root.session_store")
+
+    # Intricate: session_gc also garbage collects save_request_data files
+    # in the vary rare event, the server stopped before loading them
+    # back, so don't patch it.
+    # session_gc = PProp("odoo.http:session_gc")

@@ -26,9 +26,5 @@ class OdooClientSessionStore(ClientSessionStore):
 
 # Inheriting order important
 class SessionStoragePatcher(_odoo.Patchable, BasePatcher):
-    @staticmethod
-    def session_gc(session_store):
-        return
-
     def session_store(self):
         return OdooClientSessionStore(scope=scope.get())
