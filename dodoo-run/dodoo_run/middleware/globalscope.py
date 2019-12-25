@@ -2,8 +2,7 @@
 # Created By : David Arnold
 # Part of    : xoe-labs/dodoo
 # =============================================================================
-"""This module implements odoo asgi middleware to provide an Odoo Environment
-for http and websocket transport"""
+"""This module implements a global scope accessor for asgi"""
 
 from starlette.types import ASGIApp, Receive, Scope, Send
 

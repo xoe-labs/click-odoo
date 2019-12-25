@@ -29,7 +29,10 @@ dodoo = {path = "../dodoo"}
 pytest-postgresql = "^2.2.1"
 
 [tool.poetry.extras]
-all = {dev = ["hupper"], server = ["uvicorn"], graphql = ["strawberry-graphq"]}
+dev = ["hupper"]
+server = ["uvicorn"]
+graphql = ["strawberry-graphql"]
+all = ["dev", "server", "graphql"]
 
 [tool.poetry.plugins."dodoo.cli_plugins"]
 run = "dodoo_run.cli:run"

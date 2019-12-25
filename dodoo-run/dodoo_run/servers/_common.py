@@ -20,10 +20,6 @@ class SessionSecret(Secret):
     def __init__(self):
         pass
 
-    def __repr__(self) -> str:
-        class_name = self.__class__.__name__
-        return f"{class_name}('**********')"
-
     def __str__(self) -> str:
         return dodoo.dodoo_config.Odoo.Sec.session_encryption_key
 
