@@ -5,7 +5,7 @@
 """This package implements the dodoo suck-less odoo server"""
 
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 import logging
 import enum
@@ -31,8 +31,8 @@ def _is_dev():
 
 
 def http(host: str, port: int) -> None:
-    from .server import server
-    from .server.http import app as _app
+    from .servers import server
+    from .servers.http import app as _app
 
     is_dev = _is_dev()
     app = _app(prod=not is_dev)
@@ -40,8 +40,8 @@ def http(host: str, port: int) -> None:
 
 
 def bus(host: str, port: int) -> None:
-    from .server import server
-    from .server.bus import app as _app
+    from .servers import server
+    from .servers.bus import app as _app
 
     is_dev = _is_dev()
     app = _app(prod=not is_dev)
@@ -49,8 +49,8 @@ def bus(host: str, port: int) -> None:
 
 
 def graphql(schema: Path, host: str, port: int) -> None:
-    from .server import server
-    from .server.graphql import app as _app
+    from .servers import server
+    from .servers.graphql import app as _app
 
     is_dev = _is_dev()
     app = _app(schema, prod=not is_dev)

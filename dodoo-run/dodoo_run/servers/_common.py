@@ -21,17 +21,19 @@ class SessionSecret(Secret):
         pass
 
     def __str__(self) -> str:
-        return dodoo.dodoo_config.Odoo.Sec.session_encryption_key
+        f = dodoo.framework()
+        return f.dodoo_config.Odoo.Sec.session_encryption_key
 
 
 SessionMiddlewareArgs = dict(
-    sekret_key=SessionSecret(), session_cookie=SessionDataKey, https_only=True
+    secret_key=SessionSecret(), session_cookie=SessionDataKey, https_only=True
 )
 GZipMiddlewareArgs = dict(minimum_size=500)
 
 
 def resolve_devcert():
-    ssl_keyfile = dodoo.dodoo_config.Odoo.ssl_keyfile
-    ssl_certfile = dodoo.dodoo_config.Odoo.ssl_certfile
+    f = dodoo.framework()
+    ssl_keyfile = f.dodoo_config.Odoo.ssl_keyfile
+    ssl_certfile = f.dodoo_config.Odoo.ssl_certfile
     assert ssl_keyfile and ssl_certfile
     return dict(ssl_keyfile=str(ssl_keyfile), ssl_certfile=str(ssl_certfile))

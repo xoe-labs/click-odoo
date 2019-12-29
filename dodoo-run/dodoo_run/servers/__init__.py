@@ -18,12 +18,12 @@ _log = logging.getLogger(__name__)
 server = None
 
 
-def server(app: ASGIApp, host: str, port: int, is_dev: bool = False) -> "server":
+def server(app: ASGIApp, host: str, port: int, prod: bool = True) -> "server":
     global server
 
     kwargs = dict(host=host, port=port, log_level="error")
 
-    if is_dev:
+    if not prod:
         import hupper
 
         hupper.reloader.FileMonitorProxy.file_changed = file_changed
