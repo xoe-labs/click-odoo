@@ -19,7 +19,7 @@ class GlobalScopeAccessorMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        token = scope.set(scope)
-        await self.app(scope, receive, send)
+    async def __call__(self, _scope: Scope, _receive: Receive, _send: Send) -> None:
+        token = scope.set(_scope)
+        await self.app(_scope, _receive, _send)
         scope.reset(token)

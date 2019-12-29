@@ -28,14 +28,14 @@ def middleware(prod):
     return [
         Middleware(HTTPSRedirectMiddleware),
         Middleware(SessionMiddleware, **SessionMiddlewareArgs),
-        Middleware(WSGIMiddleware, workers=1),
         Middleware(GZipMiddleware, **GZipMiddlewareArgs),
         Middleware(GlobalScopeAccessorMiddleware),
     ] + ([Middleware(PrometheusMiddleware)] if prod else [])
 
 
 def routes(prod):
-    return [Route("/longpolling", endpoint=odoo.WSGI().app)] + (
+    endpoint = WSGIMiddleware(odoo.WSGI().app, workers=1)
+    return [Route("/longpolling", endpoint=endpoint)] + (
         [Route("/metrics", endpoint=metrics)] if prod else []
     )
 
