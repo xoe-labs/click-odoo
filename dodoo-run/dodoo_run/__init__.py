@@ -13,7 +13,7 @@ import dodoo
 
 from pathlib import Path
 
-from dodoo import RUN_MODE
+from dodoo import RUNMODE
 
 _log = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class COMPONENT(enum.Enum):
 
 
 def _is_dev():
-    return dodoo.framework().dodoo_run_mode == RUN_MODE.Develop
+    return dodoo.framework().dodoo_run_mode == RUNMODE.Develop
 
 
 def http(host: str, port: int) -> None:
