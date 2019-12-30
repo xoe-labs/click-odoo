@@ -125,17 +125,17 @@ click = "*"
 
 [[package]]
 category = "dev"
-description = "A Python click type which is similar to click.Path but returns a Pathlib path"
+description = "'A Python click type which is similar to click.Path but returns a pathlib Path'"
 name = "click-pathlib"
 optional = false
 python-versions = "*"
-version = "2019.6.13.1"
+version = "2019.12.28.7"
 
 [package.dependencies]
 click = "7.0"
 
 [package.extras]
-dev = ["PyGithub (1.43.7)", "autoflake (1.3)", "check-manifest (0.39)", "codecov (2.0.15)", "dulwich (0.19.11)", "flake8-commas (2.0.0)", "flake8-quotes (2.0.1)", "flake8 (3.7.7)", "isort (4.3.20)", "mypy (0.701)", "pip-check-reqs (2.0.3)", "pydocstyle (3.0.0)", "pyenchant (2.0.0)", "pylint (2.3.1)", "pyroma (2.5)", "pytest-cov (2.7.1)", "pytest (4.6.3)", "twine (1.13.0)", "vulture (1.0)", "yapf (0.27.0)"]
+dev = ["PyGithub (1.44.1)", "autoflake (1.3.1)", "check-manifest (0.40)", "codecov (2.0.15)", "flake8-commas (2.0.0)", "flake8-quotes (2.1.1)", "flake8 (3.7.9)", "isort (4.3.21)", "mypy (0.761)", "pip-check-reqs (2.0.3)", "pydocstyle (5.0.1)", "pyenchant (2.0.0)", "pylint (2.4.4)", "pyroma (2.6)", "pytest-cov (2.8.1)", "pytest (5.3.2)", "twine (3.1.1)", "vulture (1.2)", "yapf (0.29.0)"]
 
 [[package]]
 category = "dev"
@@ -718,7 +718,7 @@ description = "library with cross-python path, ini-parsing, io, code, log facili
 name = "py"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "1.8.0"
+version = "1.8.1"
 
 [[package]]
 category = "dev"
@@ -1026,6 +1026,22 @@ security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)"]
 socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
 
 [[package]]
+category = "main"
+description = "Secure cookie and session interface for WSGI applications."
+name = "secure-cookie"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "0.1.dev0"
+
+[package.dependencies]
+Werkzeug = "*"
+itsdangerous = "*"
+
+[package.source]
+reference = "08d33130f36888f2626cb5e83ffa63eddce7be12"
+type = "git"
+url = "https://github.com/pallets/secure-cookie.git"
+[[package]]
 category = "dev"
 description = "Python 2 and 3 compatibility utilities"
 name = "six"
@@ -1191,7 +1207,7 @@ python-versions = ">=3.6.1"
 version = "8.1"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "The comprehensive WSGI web application library."
 name = "werkzeug"
 optional = false
@@ -1250,7 +1266,7 @@ graphql = ["strawberry-graphql"]
 server = ["uvicorn"]
 
 [metadata]
-content-hash = "50fca92f08ca10677b01648459865fe7eccd80b8789efe2de5a1d564b4393e09"
+content-hash = "5aad4f242fa6c7ff96ce7f0f111c1213b9a70054be89893f2bce02687019f2c6"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -1335,8 +1351,8 @@ click-man = [
     {file = "click_man-0.3.0-py2.py3-none-any.whl", hash = "sha256:23fe3d29db6e548f18a91200cf1a35e03d6af01f6911a34b72e8c9c626169f13"},
 ]
 click-pathlib = [
-    {file = "click-pathlib-2019.6.13.1.tar.gz", hash = "sha256:a62babe7a52c34d00f64cc199442cebf68ccc067443e93a22e5ca3ee99785e6b"},
-    {file = "click_pathlib-2019.6.13.1-py3-none-any.whl", hash = "sha256:8aca6ba569298881c5d978e9af284d489338b55c7c10cdd9680e66ec28993373"},
+    {file = "click-pathlib-2019.12.28.7.tar.gz", hash = "sha256:9edaf8e92bbe622a62417f2f6a1fb69ad388a9d1d977b7b692dc45d910f37abc"},
+    {file = "click_pathlib-2019.12.28.7-py3-none-any.whl", hash = "sha256:a6b037a05c97fb4d29536b95c2cf50c750fe5413dd6cf1cece119286eba6ae6b"},
 ]
 click-plugins = [
     {file = "click-plugins-1.1.1.tar.gz", hash = "sha256:46ab999744a9d831159c3411bb0c79346d94a444df9a3a3742e9ed63645f264b"},
@@ -1723,8 +1739,8 @@ psycopg2 = [
     {file = "psycopg2-2.8.4.tar.gz", hash = "sha256:f898e5cc0a662a9e12bde6f931263a1bbd350cfb18e1d5336a12927851825bb6"},
 ]
 py = [
-    {file = "py-1.8.0-py2.py3-none-any.whl", hash = "sha256:64f65755aee5b381cea27766a3a147c3f15b9b6b9ac88676de66ba2ae36793fa"},
-    {file = "py-1.8.0.tar.gz", hash = "sha256:dc639b046a6e2cff5bbe40194ad65936d6ba360b52b3c3fe1d08a82dd50b5e53"},
+    {file = "py-1.8.1-py2.py3-none-any.whl", hash = "sha256:c20fdd83a5dbc0af9efd622bee9a5564e278f6380fffcacc43ba6f43db2813b0"},
+    {file = "py-1.8.1.tar.gz", hash = "sha256:5e27081401262157467ad6e7f851b7aa402c5852dbcb3dae06768434de5752aa"},
 ]
 pyasn1 = [
     {file = "pyasn1-0.4.8-py2.4.egg", hash = "sha256:fec3e9d8e36808a28efb59b489e4528c10ad0f480e57dcc32b4de5c9d8c9fdf3"},
@@ -1891,6 +1907,7 @@ requests = [
     {file = "requests-2.22.0-py2.py3-none-any.whl", hash = "sha256:9cf5292fcd0f598c671cfc1e0d7d1a7f13bb8085e9a590f48c010551dc6c4b31"},
     {file = "requests-2.22.0.tar.gz", hash = "sha256:11e007a8a2aa0323f5a921e9e6a2d7e4e67d9877e85773fba9ba6419025cbeb4"},
 ]
+secure-cookie = []
 six = [
     {file = "six-1.13.0-py2.py3-none-any.whl", hash = "sha256:1f1b7d42e254082a9db6279deae68afb421ceba6158efa6131de7b3003ee93fd"},
     {file = "six-1.13.0.tar.gz", hash = "sha256:30f610279e8b2578cab6db20741130331735c781b56053c59c4076da27f06b66"},

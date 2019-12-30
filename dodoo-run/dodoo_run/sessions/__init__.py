@@ -11,23 +11,25 @@ from secure_cookie.sessions import SessionStore
 
 class ClientSessionStore(SessionStore):
     """Werkzeug client session store implementation for asgi.
-    :param scope: The asgi scope to strore the session on.
+    :param global_scope: A global handle to access the asgi scope
+        to strore the session on.
     """
 
-    # path = odoo.tools.config.session_dir
-    def __init__(self, scope=None, **kwargs):
+    def __init__(self, global_scope=None, **kwargs):
         super().__init__(**kwargs)
-        self.scope = scope
+        self.global_scope = global_scope
 
     def save(self, session):
         """Save a session."""
-        self.scope = dict(session)
+        scope = self.global_scope.get()
+        scope["session"] = dict(session)
 
     def delete(self, session):
         """Delete a session."""
-        if self.scope["session"].get("sid") != session.sid:
+        scope = self.global_scope.get()
+        if scope["session"].get("sid") != session.sid:
             return
-        self.scope = {}
+        scope["session"] = {}
 
     def get(self, sid):
         """Get a session for this sid or a new session object. This
@@ -37,7 +39,8 @@ class ClientSessionStore(SessionStore):
         if not self.is_valid_key(sid):
             return self.new()
 
-        if self.scope["session"].get("sid") != sid:
+        scope = self.global_scope.get()
+        if scope["session"].get("sid") != sid:
             return self.new()
-        data = self.scope["session"]
+        data = scope["session"]
         return self.session_class(data, sid, False)

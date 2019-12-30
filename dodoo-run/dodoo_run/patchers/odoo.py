@@ -9,8 +9,10 @@ from dodoo_run.middleware.globalscope import scope
 from dodoo.interfaces import odoo
 from dodoo.patchers import BasePatcher
 
-from ..interfaces import _odoo
+from ..interfaces import odoo as _odoo
 from ..sessions import ClientSessionStore
+
+# lazy_property = odoo.Tools()._f.lazy_property
 
 
 class OdooClientSessionStore(ClientSessionStore):
@@ -19,12 +21,13 @@ class OdooClientSessionStore(ClientSessionStore):
     Odoo Session Class.
     """
 
-    def __init__(self, session_class=_odoo.Session().SessionClass, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(session_class=_odoo.Session().SessionClass, **kwargs)
         self.path = odoo.Config().session_dir()
 
 
 # Inheriting order important
 class SessionStoragePatcher(_odoo.Patchable, BasePatcher):
+    @property
     def session_store(self):
-        return OdooClientSessionStore(scope=scope.get())
+        return OdooClientSessionStore(global_scope=scope)

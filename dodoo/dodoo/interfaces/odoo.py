@@ -104,6 +104,9 @@ class Tools:
     def lazy(self, obj):
         return self._f.lazy(obj)
 
+    def lazy_property(self, func):
+        return self._f.lazy_property(func)
+
 
 class Service:
     def __init__(self):

@@ -15,6 +15,8 @@ from pathlib import Path
 
 from dodoo import RUNMODE
 
+from .patchers.odoo import SessionStoragePatcher
+
 _log = logging.getLogger(__name__)
 
 
@@ -31,6 +33,7 @@ def _is_dev():
 
 
 def http(host: str, port: int) -> None:
+    SessionStoragePatcher().apply()
     from .servers import server
     from .servers.http import app as _app
 
@@ -40,6 +43,7 @@ def http(host: str, port: int) -> None:
 
 
 def bus(host: str, port: int) -> None:
+    SessionStoragePatcher().apply()
     from .servers import server
     from .servers.bus import app as _app
 
@@ -49,6 +53,7 @@ def bus(host: str, port: int) -> None:
 
 
 def graphql(schema: Path, host: str, port: int) -> None:
+    SessionStoragePatcher().apply()
     from .servers import server
     from .servers.graphql import app as _app
 
