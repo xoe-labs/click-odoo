@@ -8,7 +8,6 @@
 import logging
 import os
 import re
-from functools import partial
 
 from psycopg2.extensions import make_dsn, parse_dsn
 
@@ -44,34 +43,54 @@ class Patcher(odoo.Patchable, BasePatcher):
         self.SmtpConfig = smtpconfig
 
     @staticmethod
-    def exec_pg_environ():
-        return partial(_db_ops_alternative, "python code")
+    def exec_pg_environ(*args, **kargs):
+        return _db_ops_alternative("python code")
 
     @staticmethod
-    def exec_pg_command():
-        return partial(_db_ops_alternative, "python code")
+    def exec_pg_command(*args, **kargs):
+        return _db_ops_alternative("python code")
 
     @staticmethod
-    def exec_pg_command_pipe():
-        return partial(_db_ops_alternative, "python code")
+    def exec_pg_command_pipe(*args, **kargs):
+        return _db_ops_alternative("python code")
 
     @staticmethod
-    def find_pg_tool():
-        return partial(_db_ops_alternative, "python code")
+    def find_pg_tool(*args, **kargs):
+        return _db_ops_alternative("python code")
 
     @staticmethod
-    def exp_restore():
-        return partial(_db_ops_alternative, "'dodoo backup")
+    def exp_change_admin_password(*args, **kargs):
+        return _db_ops_alternative("config files")
 
     @staticmethod
-    def exp_dump():
-        return partial(_db_ops_alternative, "'dodoo backup'")
+    def exp_migrate_databases(*args, **kargs):
+        return _db_ops_alternative("'dodoo migrate'")
 
     @staticmethod
-    def exp_drop():
-        return partial(_db_ops_alternative, "'dodoo deinit'")  # TODO: impl.
+    def exp_restore(*args, **kargs):
+        return _db_ops_alternative("'dodoo backup'")
 
-    def verify_admin_password(self, _self, password):
+    @staticmethod
+    def restore_db(*args, **kargs):
+        return _db_ops_alternative("'dodoo backup'")
+
+    @staticmethod
+    def dump_db_manifest(*args, **kargs):
+        return _db_ops_alternative("'dodoo backup'")
+
+    @staticmethod
+    def dump_db(*args, **kargs):
+        return _db_ops_alternative("'dodoo backup'")
+
+    @staticmethod
+    def exp_dump(*args, **kargs):
+        return _db_ops_alternative("'dodoo backup'")
+
+    @staticmethod
+    def exp_drop(*args, **kargs):
+        return _db_ops_alternative("'dodoo deinit'")
+
+    def verify_admin_password(self, password):
         return password == self.OdooConfig.Sec.admin_passwd
 
     def connection_info_for(self, dbname):
@@ -97,7 +116,7 @@ class Patcher(odoo.Patchable, BasePatcher):
 
     @staticmethod
     @BasePatcher.unlessFeature("call_home")
-    def update_notification():
+    def update_notification(*args, **kargs):
         return lambda: True
 
     @staticmethod
@@ -106,7 +125,7 @@ class Patcher(odoo.Patchable, BasePatcher):
         return lambda: True
 
     def db_filter(self, dbs, httprequest=None):
-        httprequest = httprequest or odoo.http.request.httprequest
+        httprequest = httprequest or odoo.Request().httprequest
         host = re.escape(httprequest.environ.get("HTTP_HOST", "").split(":")[0])
         project_version = re.escape(dodoo.framework().dodoo_project_version)
         pattern = rf"{host}-{project_version}"
@@ -128,7 +147,7 @@ class Patcher(odoo.Patchable, BasePatcher):
         return CustomList([])
 
     @staticmethod
-    def get_modules_with_version():
+    def get_modules_with_version(*args, **kargs):
         """ Not used anywhere in standard odoo code, but conveys possible and
         inacceptable side effects on `get_modules` patch."""
         raise NotImplementedError(

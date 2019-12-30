@@ -13,7 +13,7 @@ from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.wsgi import WSGIMiddleware
-from starlette.routing import Route
+from starlette.routing import Mount, Route
 from starlette.types import ASGIApp
 from starlette_prometheus import PrometheusMiddleware, metrics
 
@@ -34,10 +34,10 @@ def middleware(prod):
 
 
 def routes(prod):
-    endpoint = WSGIMiddleware(odoo.WSGI().app, workers=1)
-    return [Route("/longpolling", endpoint=endpoint)] + (
-        [Route("/metrics", endpoint=metrics)] if prod else []
-    )
+    app = WSGIMiddleware(odoo.WSGI().app, workers=1)
+    return ([Route("/metrics", endpoint=metrics)] if prod else []) + [
+        Mount("/longpolling", app)
+    ]
 
 
 def app(prod: bool) -> ASGIApp:

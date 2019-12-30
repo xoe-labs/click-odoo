@@ -199,6 +199,12 @@ class Config:
         return Path(self.config.session_dir)
 
 
+class Request:
+    def __new__(cls):
+        http = import_module("odoo.http")
+        return http.request
+
+
 class Patchable:
 
     # #############################
@@ -236,8 +242,13 @@ class Patchable:
 
     # odoo.service.db
     exp_drop = PProp("odoo.service.db:exp_drop")
+    exp_drop = PProp("odoo.service.db:exp_drop")
     exp_dump = PProp("odoo.service.db:exp_dump")
-    exp_restore = PProp("odoo.service.db:exp_restore")
+    restore_db = PProp("odoo.service.db:restore_db")
+    dump_db_manifest = PProp("odoo.service.db:dump_db_manifest")
+    dump_db = PProp("odoo.service.db:dump_db")
+    exp_change_admin_password = PProp("odoo.service.db:exp_change_admin_password")
+    exp_migrate_databases = PProp("odoo.service.db:exp_migrate_databases")
 
     # odoo.sql_db
     connection_info_for = PProp("odoo.sql_db:connection_info_for")

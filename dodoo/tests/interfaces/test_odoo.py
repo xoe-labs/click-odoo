@@ -31,6 +31,9 @@ class TestOdooInterface:
     def test_cli(self):
         odoo.Cli().shell()
 
+    def test_request(self):
+        odoo.Request()
+
     def test_service(self):
         with pytest.raises(psycopg2.OperationalError):
             odoo.Service().seed_db("dbname")
@@ -79,6 +82,11 @@ class TestOdooInterface:
         odoo.Patchable.exp_drop
         odoo.Patchable.exp_dump
         odoo.Patchable.exp_restore
+        odoo.Patchable.restore_db
+        odoo.Patchable.dump_db_manifest
+        odoo.Patchable.dump_db
+        odoo.Patchable.exp_change_admin_password
+        odoo.Patchable.exp_migrate_databases
         odoo.Patchable.connection_info_for
         odoo.Patchable.db_connect
         odoo.Patchable.verify_admin_password

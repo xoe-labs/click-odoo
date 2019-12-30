@@ -56,6 +56,26 @@ class TestOdooPatcher:
         assert odoo_interface.Patchable().exp_restore is func
         assert func.__module__ == patcher_module
 
+        func = odoo.service.db.restore_db
+        assert odoo_interface.Patchable().restore_db is func
+        assert func.__module__ == patcher_module
+
+        func = odoo.service.db.dump_db_manifest
+        assert odoo_interface.Patchable().dump_db_manifest is func
+        assert func.__module__ == patcher_module
+
+        func = odoo.service.db.dump_db
+        assert odoo_interface.Patchable().dump_db is func
+        assert func.__module__ == patcher_module
+
+        func = odoo.service.db.exp_change_admin_password
+        assert odoo_interface.Patchable().exp_change_admin_password is func
+        assert func.__module__ == patcher_module
+
+        func = odoo.service.db.exp_migrate_databases
+        assert odoo_interface.Patchable().exp_migrate_databases is func
+        assert func.__module__ == patcher_module
+
         func = odoo.sql_db.connection_info_for
         assert odoo_interface.Patchable().connection_info_for is func
         assert func.__module__ == patcher_module
