@@ -9,7 +9,6 @@ import logging
 from dodoo_run.middleware.globalscope import GlobalScopeAccessorMiddleware
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
-from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.wsgi import WSGIMiddleware
@@ -19,7 +18,7 @@ from starlette_prometheus import PrometheusMiddleware, metrics
 
 import dodoo.interfaces.odoo as odoo
 
-from ._common import GZipMiddlewareArgs, SessionMiddlewareArgs
+from ._common import SessionMiddlewareArgs
 
 _log = logging.getLogger(__name__)
 
@@ -28,7 +27,6 @@ def middleware(prod):
     return [
         Middleware(HTTPSRedirectMiddleware),
         Middleware(SessionMiddleware, **SessionMiddlewareArgs),
-        Middleware(GZipMiddleware, **GZipMiddlewareArgs),
         Middleware(GlobalScopeAccessorMiddleware),
     ] + ([Middleware(PrometheusMiddleware)] if prod else [])
 

@@ -8,6 +8,7 @@ import dodoo_init.cache as cache
 import pytest
 from psycopg2.extensions import make_dsn
 from pytest_postgresql import factories
+from werkzeug.serving import make_ssl_devcert
 
 postgres = factories.postgresql_proc()
 pg_conn_main = factories.postgresql("postgres")
@@ -85,7 +86,11 @@ def confd(global_datadir, tmp_path_factory) -> Path:
         "scoped_addons_dir": str(scoped_addons_dir),
         "geoip_database": str(geoip_database_file),
     }
+
+    crt_path, key_path = make_ssl_devcert(str(global_datadir), host="localhost")
+
     develop_dict.update(**upd)
+    develop_dict.update(ssl_keyfile=key_path, ssl_certfile=crt_path)
     stage_dict.update(**upd)
     prod_dict.update(**upd)
 

@@ -10,6 +10,8 @@ import ipaddress
 import click
 import click_pathlib
 
+import dodoo
+
 from . import (
     bus as _bus,
     cron as _cron,
@@ -33,10 +35,12 @@ def validate_port(ctx, param, value):
 
 @click.group()
 def run():
-    # TODO: Ideas ...
-    # ... Patcher feature-flag to use athenapdf microservice instead of wkhtmltopdf
-    #
-    pass
+    if dodoo.framework().dodoo_run_mode == dodoo.RUNMODE.Develop:
+        import hupper
+        from .servers.watcher import file_changed
+
+        hupper.reloader.FileMonitorProxy.file_changed = file_changed
+        hupper.start_reloader(f"dodoo.main")
 
 
 @run.command()
@@ -60,6 +64,11 @@ def bus(*args, **kwargs):
 @click.argument("addr", default="0.0.0.0", type=str, callback=validate_ip)
 @click.argument("port", default=8075, type=int, callback=validate_port)
 def graphql(*args, **kwargs):
+    if dodoo.framework().dodoo_run_mode == dodoo.RUNMODE.Develop:
+        import hupper
+
+        reloader = hupper.get_reloader()
+        reloader.watch_files([str(kwargs["schema"])])
     _graphql(*args, **kwargs)
 
 

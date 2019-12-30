@@ -92,10 +92,5 @@ def main(*args, **kwargs):
     _main(*args, **kwargs)
 
 
-@main.command()
-def test():
-    print("Hello")
-
-
 if __name__ == "__main__":  # pragma: no cover
     main()

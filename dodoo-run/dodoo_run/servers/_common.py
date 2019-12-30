@@ -28,12 +28,3 @@ class SessionSecret(Secret):
 SessionMiddlewareArgs = dict(
     secret_key=SessionSecret(), session_cookie=SessionDataKey, https_only=True
 )
-GZipMiddlewareArgs = dict(minimum_size=500)
-
-
-def resolve_devcert():
-    f = dodoo.framework()
-    ssl_keyfile = f.dodoo_config.Odoo.ssl_keyfile
-    ssl_certfile = f.dodoo_config.Odoo.ssl_certfile
-    assert ssl_keyfile and ssl_certfile
-    return dict(ssl_keyfile=str(ssl_keyfile), ssl_certfile=str(ssl_certfile))

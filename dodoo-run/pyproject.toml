@@ -29,6 +29,7 @@ odoo = {path = "../.odoo"}
 dodoo = {path = "../dodoo"}
 dodoo_init = {path = "../dodoo-init"}
 pytest-postgresql = "^2.2.1"
+pyopenssl = "^19.1.0"
 
 [tool.poetry.extras]
 dev = ["hupper"]

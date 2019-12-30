@@ -15,7 +15,6 @@ from starlette.applications import Starlette
 from starlette.authentication import requires
 from starlette.middleware import Middleware
 from starlette.middleware.authentication import AuthenticationMiddleware
-from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.routing import Route, WebSocketRoute
@@ -23,7 +22,7 @@ from starlette.types import ASGIApp
 from starlette_prometheus import PrometheusMiddleware, metrics
 from strawberry.asgi import GraphQL
 
-from ._common import GZipMiddlewareArgs, SessionMiddlewareArgs
+from ._common import SessionMiddlewareArgs
 
 try:
     import graphene
@@ -40,7 +39,6 @@ def middleware(prod):
         Middleware(SessionMiddleware, **SessionMiddlewareArgs),
         Middleware(AuthenticationMiddleware, backend=OdooBasicAuthBackendAsync()),
         Middleware(OdooEnvironmentMiddlewareAsync),
-        Middleware(GZipMiddleware, **GZipMiddlewareArgs),
     ] + ([Middleware(PrometheusMiddleware)] if prod else [])
 
 
