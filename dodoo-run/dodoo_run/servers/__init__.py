@@ -18,7 +18,7 @@ server = None
 def server(app: ASGIApp, host: str, port: int, prod: bool = True) -> "server":
     global server
 
-    kwargs = dict(host=host, port=port, log_level="debug", debug=True)
+    kwargs = dict(host=host, port=port)
 
     if not prod:
         odooconfig = dodoo.framework().dodoo_config.Odoo

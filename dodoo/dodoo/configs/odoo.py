@@ -64,8 +64,6 @@ class OdooConfig(BaseConfig):
     geoip_database:       PathLike = Path("/usr/share/GeoIP/GeoLite2-City.mmdb")  # noqa: E241
     unaccent:                 bool = True  # noqa: E241
     server_wide_modules: FrozenSet[str] = frozenset(["web", "base"])  # noqa: E241
-    log_handler:         FrozenSet[str] = frozenset(["odoo.http.rpc.request:INFO",  # noqa: E241
-                                                "odoo.http.rpc.response:INFO", ])
 
     # Secrets
     class Sec():
@@ -82,14 +80,6 @@ class OdooConfig(BaseConfig):
     Sec = Sec()
     # fmt: on
 
-    def apply_log_handler_to(self, logging):
-        for element in self.log_handler:
-            loggername, level = element.split(":")
-            level = getattr(logging, level, logging.INFO)
-            logger = logging.getLogger(loggername)
-            logger.setLevel(level)
-            _log.debug(f"logger level set: {element}")
-
     def apply(self):
         cfg = odoo.Config()
         for k, v in self.__dict__.items():
@@ -102,7 +92,6 @@ class OdooConfig(BaseConfig):
         )
         # Fix frozenset config value
         cfg.config["server_wide_modules"] = ",".join(cfg.config["server_wide_modules"])
-        cfg.config["log_handler"] = ",".join(cfg.config["log_handler"])
         # Fix Path objects
         cfg.config["data_dir"] = str(cfg.config["data_dir"])
         cfg.config["backup_dir"] = str(cfg.config["backup_dir"])

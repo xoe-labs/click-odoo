@@ -41,6 +41,14 @@ EPILOG = (
     "production. A sane default config is shipped for each env.",
 )
 @click.option(
+    "--log-conf",
+    "log_config",
+    default=False,
+    show_default=True,
+    type=click_pathlib.Path(exists=True, file_okay=False, resolve_path=True),
+    help="Logger configuration file.",
+)
+@click.option(
     "-h",
     "--call-home",
     "call_home",
@@ -78,7 +86,7 @@ EPILOG = (
 @click.option(
     "-v",
     "--verbose",
-    "log_level",
+    "verbosity",
     count=True,
     help="Specify the log level from: info, debug. Without: warn.",
 )

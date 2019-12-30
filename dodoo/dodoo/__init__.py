@@ -9,51 +9,24 @@ __version__ = "0.0.1"
 __all__ = ["RUNMODE", "main", "framework"]
 
 import logging
-import colorlog
-import threading
-import os
+import logging.config
 import enum
 import sys
 
+
 from pathlib import Path
-
-try:
-    from pythonjsonlogger import jsonlogger
-except ImportError:
-    jsonlogger = None
-
-
-assert sys.version_info >= (3, 7), "doDoo requires Python >= 3.7 to run."
+from typing import Optional
+from dodoo.logger import DEFAULT_LOGGING_CONFIG
 
 _log = logging.getLogger(__name__)
+
+assert sys.version_info >= (3, 7), "doDoo requires Python >= 3.7 to run."
 
 
 class RUNMODE(enum.Enum):
     Develop = 1
     Staging = 2
     Production = 3
-
-
-class DBFormatter(logging.Formatter):
-    def format(self, record):
-        record.pid = os.getpid()
-        record.dbname = getattr(threading.current_thread(), "dbname", "?")
-        return super().format(record)
-
-
-class ColoredFormatter(DBFormatter, colorlog.ColoredFormatter):
-    pass
-
-
-if jsonlogger:
-
-    class JSONFormatter(DBFormatter, jsonlogger.JsonFormatter):
-        def format(self, record):
-            if record.exc_info:
-                mod_name = record.exc_info[0].__module__
-                obj_name = record.exc_info[0].__name__
-                record.exc_class = f"{mod_name}:{obj_name}"
-            return super().format(record)
 
 
 # Those might import RUNMODE
@@ -74,16 +47,24 @@ def main(
     config_dir: Path,
     call_home: bool,
     run_mode: RUNMODE,
-    log_level: int,
+    verbosity: Optional[int],
+    log_config: Optional[Path],
     projectversion_file: Path,
 ) -> None:
     """Provide the common cli entrypoint, initialize the dodoo python
     environment, load configuration and set up logging.
 
     Then hand off to a subcommand."""
-    rootlogger = logging.getLogger()
-    rootlogger.setLevel(logging.WARNING - min(log_level, 2) * 10)
+    if verbosity:
+        log_level = logging.WARNING - min(verbosity, 2) * 10
+        logging.getLogger("").setLevel(log_level)
+        logging.getLogger("odoo").setLevel(log_level)
+    if log_config:
+        logging.config.fileConfig(log_config)
+    else:
+        logging.config.dictConfig(DEFAULT_LOGGING_CONFIG)
     logging.captureWarnings(True)
+
     config = load_config(config_dir, run_mode)
 
     # Load odoo module from specified framework path
@@ -100,38 +81,6 @@ def main(
     _framework.dodoo_config = config
 
     odoo.Tools().resetlocale()
-
-    # TODO: Review if this is optimal
-    if run_mode == RUNMODE.Develop:
-        logformat = (
-            "%(levelname)s %(dbname)s "
-            "%(name)s: %(message)s\n"
-            "file://%(pathname)s:%(lineno)d"
-        )
-    else:
-        logformat = "%(asctime)s %(levelname)s %(dbname)s " "%(name)s: %(message)s"
-    handler = colorlog.StreamHandler()
-    if handler.stream.isatty():
-        formatter = ColoredFormatter(
-            logformat,
-            log_colors={
-                "DEBUG": "cyan",
-                "INFO": "green",
-                "WARNING": "yellow",
-                "ERROR": "red",
-                "CRITICAL": "red,bg_white",
-            },
-            secondary_log_colors={"message": {"ERROR": "red", "CRITICAL": "red"}},
-        )
-    elif jsonlogger:
-        formatter = JSONFormatter(logformat)
-    else:
-        formatter = DBFormatter(logformat)
-
-    handler.setFormatter(formatter)
-    logging.getLogger().addHandler(handler)
-
-    config.Odoo.apply_log_handler_to(logging)
 
     if call_home:
         Patcher.features.update(call_home=True)

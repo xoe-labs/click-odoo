@@ -14,7 +14,7 @@ def main_loaded(confd, project_version_file, framework_dir, mocker):
 
     orig_framework = dodoo._framework
     mocker.patch("dodoo.create_custom_schema_layout")
-    main(framework_dir, confd, False, RUNMODE.Production, 0, project_version_file)
+    main(framework_dir, confd, False, RUNMODE.Production, 0, None, project_version_file)
     yield
     dodoo._framework = orig_framework
 
