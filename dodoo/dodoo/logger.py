@@ -1,5 +1,6 @@
 import logging
 import sys
+import textwrap
 import threading
 
 import click
@@ -8,45 +9,34 @@ DEFAULT_LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "default": {
-            "()": "dodoo.logger.DefaultFormatter",
-            "fmt": "%(levelprefix)s %(message)s",
-        },
         "odoo": {
             "()": "dodoo.logger.DefaultFormatter",
-            "fmt": "%(levelprefix)s %(message)s  -- %(dbname)s, %(name)s",
+            "fmt": "%(levelprefix)s %(message)s    %(dbname)s, %(name)s",
+        },
+        "filelink": {
+            "()": "dodoo.logger.DefaultFormatter",
+            "fmt": "\tfile://%(pathname)s, line %(lineno)d",
         },
         # "json": {
         #     "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
         # },
-        # "filelink": {
-        #     "()": "dodoo.logger.DefaultFormatter",
-        #     "fmt": (
-        #         "%(levelprefix)s %(dbname)s | %(message)s  (%(name)s)\n"
-        #         "\tfile://%(pathname)s:%(lineno)d"
-        #     ),
-        # },
     },
     "handlers": {
-        "default": {
-            "formatter": "default",
-            "class": "logging.StreamHandler",
-            "stream": "ext://sys.stderr",
-        },
         "odoo": {
             "formatter": "odoo",
             "class": "logging.StreamHandler",
             "stream": "ext://sys.stderr",
         },
-        # "filelink": {
-        #     "formatter": "filelink",
-        #     "class": "logging.StreamHandler",
-        #     "stream": "ext://sys.stderr",
-        # },
+        "filelink": {
+            "formatter": "filelink",
+            "level": "WARNING",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stderr",
+        },
     },
     "loggers": {
-        "": {"handlers": ["default"], "level": "INFO"},
-        "odoo": {"handlers": ["odoo"], "level": "INFO", "propagate": False},
+        "": {"handlers": ["odoo"], "level": "INFO"},
+        "odoo": {"handlers": ["odoo", "filelink"], "level": "INFO", "propagate": False},
     },
 }
 
@@ -67,8 +57,9 @@ class ColourizedFormatter(logging.Formatter):
         ),
     }
 
-    def __init__(self, fmt=None, datefmt=None, style="%"):
+    def __init__(self, fmt=None, datefmt=None, style="%", message_width=75):
         self.use_colors = self.should_use_colors()
+        self.message_width = message_width
         super().__init__(fmt=fmt, datefmt=datefmt, style=style)
 
     def color_level_name(self, level_name, level_no):
@@ -88,10 +79,11 @@ class ColourizedFormatter(logging.Formatter):
             levelname = self.color_level_name(levelname, record.levelno)
             dbname = click.style(dbname, fg="blue")
             name = click.style(name, bold=True)
-
         record.__dict__["levelprefix"] = levelname + ":" + seperator
         record.__dict__["dbname"] = dbname
         record.__dict__["name"] = name
+        msg = textwrap.shorten(record.message.lower(), width=self.message_width)
+        record.__dict__["message"] = msg + " " * (self.message_width - len(msg))
         return super().formatMessage(record)
 
 
